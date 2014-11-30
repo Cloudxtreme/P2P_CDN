@@ -1,8 +1,10 @@
 var express = require('express')
 var static = require('node-static');
-var socketIO = require('socket.io');
 var http = require('http');
 var app = express();
+var server = http.createServer(app);
+var os = require('os');
+var io = require('socket.io').listen(server);
 
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
@@ -14,11 +16,11 @@ app.get('/', function(request, response) {
   file.serve(request, response);
 })
 
-app.listen(app.get('port'), function() {
+server.listen(app.get('port'), function() {
   console.log("Node app is running at localhost:" + app.get('port'))
 })
 
-var io = socketIO.listen(file);
+
 io.sockets.on('connection', function (socket){
 
     // convenience function to log server messages on the client

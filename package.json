@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "~4.9.x",
     "node-static": "0.7.x",
-    "socket.io": "1.2.x"
+    "socket.io": "0.9.x"
   },
   "engines": {
     "node": "0.10.x"
