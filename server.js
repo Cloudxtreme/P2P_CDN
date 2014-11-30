@@ -6,6 +6,8 @@ var app = express();
 
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
+app.use('/css', express.static(__dirname + '/css'))
+app.use('/js', express.static(__dirname + '/js'))
 
 var file = new(static.Server)();
 app.get('/', function(request, response) {
