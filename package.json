@@ -1,10 +1,10 @@
 {
-  "name": "node-js-getting-started",
+  "name": "p2p-cdn",
   "version": "0.1.2",
-  "description": "A sample Node.js app using Express 4",
-  "main": "index.js",
+  "description": "A simple Node.js app using Express 4",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "~4.9.x"
@@ -14,12 +14,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/heroku/node-js-getting-started"
+    "url": "https://github.com/noahyonack/P2P_CDN.git"
   },
   "keywords": [
     "node",
     "heroku",
     "express"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/noahyonack/P2P_CDN.git/issues"
+  },
+  "author": "Serguei Balanovich"
 }
