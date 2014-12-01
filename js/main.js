@@ -300,10 +300,10 @@ function renderPhoto(data) {
     console.log("asdsada", trail, trail.firstChild)
     //trail.insertBefore(img, trail.firstChild);
     trail.insertBefore(img, null);
-    var canvas = img.getContext('2d');
-    img = canvas.createImageData(300, 150);
+    var canvasElt = img.getContext('2d');
+    img = canvasElt.createImageData(300, 150);
     img.data.set(data);
-    canvas.putImageData(img, 0, 0);
+    canvasElt.putImageData(img, 0, 0);
 }
 
 function setCanvasDimensions() {
