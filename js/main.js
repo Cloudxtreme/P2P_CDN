@@ -295,12 +295,11 @@ function sendPhoto() {
 }
 
 function renderPhoto(data) {
-    var img = document.createElement('canvas');
-    img.classList.add('img');
-    console.log("asdsada", trail, trail.firstChild)
-    //trail.insertBefore(img, trail.firstChild);
-    trail.insertBefore(img, null);
-    var canvasElt = img.getContext('2d');
+    var photoElt = document.createElement('canvas');
+    photoElt.classList.add('photo');
+    trail.append(photoElt, trail.firstChild);
+
+    var canvasElt = photoElt.getContext('2d');
     img = canvasElt.createImageData(300, 150);
     img.data.set(data);
     canvasElt.putImageData(img, 0, 0);
