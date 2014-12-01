@@ -1,52 +1,23 @@
-var imageLoader = document.getElementById('imageLoader');
-imageLoader.addEventListener('change', handleImage, false);
-photo = document.getElementById('photo');
-canvas = photo.getContext('2d');
-
-function handleImage(e){
-    var reader = new FileReader();
-    reader.onload = function(event){
-        var img = new Image();
-        img.onload = function(){
-            canvas.width = img.width;
-            canvas.height = img.height;
-            canvas.drawImage(img,0,0);
-        }
-        img.src = event.target.result;
-    }
-    reader.readAsDataURL(e.target.files[0]);
-    setCanvasDimensions()     
-}
-
-// $(function() {
-//     setCanvasDimensions();
-// });
-
-// function readURL(e){
-//     var reader = new FileReader();
-//     reader.onload = function(event){
-//         var img = new Image();
-//         img.onload = function(){
-//             canvas.width = img.width;
-//             canvas.height = img.height;
-//             ctx.drawImage(img,0,0);
-//         }
-//         img.src = event.target.result;
-//     }
-//     reader.readAsDataURL(e.target.files[0]);     
-// }
+/****************************************************************************
+ * Initial setup
+ ****************************************************************************/
 
 var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
 // {"url":"stun:stun.services.mozilla.com"}
 
-    roomURL = $("#url"),
-    photo = $("#photo"),
-    trail = $("#trail"),
-    sendBtn = $("#send"),
+    roomURL = document.getElementById('url'),
+    video = document.getElementsByTagName('video')[0],
+    photo = document.getElementById('photo'),
+    canvas = photo.getContext('2d'),
+    trail = document.getElementById('trail'),
+    snapBtn = document.getElementById('snap'),
+    sendBtn = document.getElementById('send'),
     canvasWidth, canvasHeight;
 
-// Attach event handlers
-sendBtn.click(sendPhoto);
+// Attach even handlers
+video.addEventListener('play', setCanvasDimensions);
+snapBtn.addEventListener('click', snapPhoto);
+sendBtn.addEventListener('click', sendPhoto);
 
 // Create a random room if not already present in the URL.
 var isInitiator;
@@ -118,6 +89,28 @@ function updateRoomURL(ipaddr) {
     }
     roomURL.innerHTML = url;
 }
+
+
+/**************************************************************************** 
+ * User media (webcam) 
+ ****************************************************************************/
+
+console.log('Getting user media (video) ...');
+getUserMedia({video: true}, getMediaSuccessCallback, getMediaErrorCallback);
+
+function getMediaSuccessCallback(stream) {
+    var streamURL = window.URL.createObjectURL(stream);
+    console.log('getUserMedia video stream URL:', streamURL);
+    window.stream = stream; // stream available to console
+
+    video.src = streamURL;
+    show(snapBtn);
+}
+
+function getMediaErrorCallback(error){
+    console.log("getUserMedia error:", error);
+}
+
 
 /**************************************************************************** 
  * WebRTC peer connection and data channel
@@ -191,7 +184,7 @@ function onDataChannelCreated(channel) {
     console.log('onDataChannelCreated:', channel);
 
     channel.onopen = function () {
-        console.log('CHANNEL opened!');
+        console.log('CHANNEL opened!!!');
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
@@ -266,16 +259,20 @@ function receiveDataFirefoxFactory() {
  * Aux functions, mostly UI-related
  ****************************************************************************/
 
+function snapPhoto() {
+    canvas.drawImage(video, 0, 0, canvasWidth, canvasHeight);
+    show(photo, sendBtn);
+}
+
 function sendPhoto() {
     // Split data channel message in chunks of this byte length.
     var CHUNK_LEN = 64000;
 
-    canvasWidth = 300;
-    canvasHeight = 150;
     var img = canvas.getImageData(0, 0, canvasWidth, canvasHeight),
         len = img.data.byteLength,
         n = len / CHUNK_LEN | 0;
 
+    console.log("Asdjkasgdas", len)
     console.log('Sending a total of ' + len + ' byte(s)');
     dataChannel.send(len);
 
@@ -295,27 +292,26 @@ function sendPhoto() {
 }
 
 function renderPhoto(data) {
-    var img = document.createElement('canvas');
-    img.classList.add('img');
-    console.log("asdsada", trail, trail.firstChild)
-    //trail.insertBefore(img, trail.firstChild);
-    trail.insertBefore(img, null);
-    var canvas = img.getContext('2d');
+    var photo = document.createElement('canvas');
+    photo.classList.add('photo');
+    trail.insertBefore(photo, trail.firstChild);
+
+    var canvas = photo.getContext('2d');
     img = canvas.createImageData(300, 150);
     img.data.set(data);
     canvas.putImageData(img, 0, 0);
 }
 
 function setCanvasDimensions() {
-    // if (video.videoWidth == 0) {
-    //     setTimeout(setCanvasDimensions, 200);
-    //     return;
-    // }
+    if (video.videoWidth == 0) {
+        setTimeout(setCanvasDimensions, 200);
+        return;
+    }
     
-    // console.log('video width:', video.videoWidth, 'height:', video.videoHeight)
+    console.log('video width:', video.videoWidth, 'height:', video.videoHeight)
 
-    // canvasWidth = video.videoWidth / 2;
-    // canvasHeight = video.videoHeight / 2;
+    canvasWidth = video.videoWidth / 2;
+    canvasHeight = video.videoHeight / 2;
     //photo.style.width = canvasWidth + 'px';
     //photo.style.height = canvasHeight + 'px';
     // TODO: figure out right dimensions

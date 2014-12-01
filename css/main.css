@@ -23,3 +23,39 @@
 	height: 150px; 
 	border: 1px solid #ccc;
 }
+
+.center {
+    text-align: center
+}
+
+.arial {
+    font-family: arial
+}
+
+.file_input {
+    display: block; 
+    margin: auto; 
+    width: 75px;
+    margin-bottom: 10px;
+}
+
+.photo_to_send {
+    /*width: 200px; 
+    height: 150px; */
+    border: 10px solid blue; 
+    text-align: center; 
+    margin: auto; 
+    display: block; 
+    margin-top:25px;
+    margin-bottom:25px;
+}
+
+.send {
+    margin: auto;
+    display: block;
+    margin-bottom: 25px;
+}
+
+
+
+

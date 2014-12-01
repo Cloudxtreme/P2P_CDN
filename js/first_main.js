@@ -14,13 +14,8 @@ function handleImage(e){
         }
         img.src = event.target.result;
     }
-    reader.readAsDataURL(e.target.files[0]);
-    setCanvasDimensions()     
+    reader.readAsDataURL(e.target.files[0]);     
 }
-
-// $(function() {
-//     setCanvasDimensions();
-// });
 
 // function readURL(e){
 //     var reader = new FileReader();
@@ -295,27 +290,26 @@ function sendPhoto() {
 }
 
 function renderPhoto(data) {
-    var img = document.createElement('canvas');
-    img.classList.add('img');
-    console.log("asdsada", trail, trail.firstChild)
-    //trail.insertBefore(img, trail.firstChild);
-    trail.insertBefore(img, null);
-    var canvas = img.getContext('2d');
+    var photo = document.createElement('canvas');
+    photo.classList.add('photo');
+    trail.insertBefore(photo, trail.firstChild);
+
+    var canvas = photo.getContext('2d');
     img = canvas.createImageData(300, 150);
     img.data.set(data);
     canvas.putImageData(img, 0, 0);
 }
 
 function setCanvasDimensions() {
-    // if (video.videoWidth == 0) {
-    //     setTimeout(setCanvasDimensions, 200);
-    //     return;
-    // }
+    if (video.videoWidth == 0) {
+        setTimeout(setCanvasDimensions, 200);
+        return;
+    }
     
-    // console.log('video width:', video.videoWidth, 'height:', video.videoHeight)
+    console.log('video width:', video.videoWidth, 'height:', video.videoHeight)
 
-    // canvasWidth = video.videoWidth / 2;
-    // canvasHeight = video.videoHeight / 2;
+    canvasWidth = video.videoWidth / 2;
+    canvasHeight = video.videoHeight / 2;
     //photo.style.width = canvasWidth + 'px';
     //photo.style.height = canvasHeight + 'px';
     // TODO: figure out right dimensions
