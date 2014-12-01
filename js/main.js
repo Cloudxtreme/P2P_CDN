@@ -12,12 +12,14 @@ var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
     trail = document.getElementById('trail'),
     snapBtn = document.getElementById('snap'),
     sendBtn = document.getElementById('send'),
+    snapAndSendBtn = document.getElementById('snapAndSend'),
     canvasWidth, canvasHeight;
 
 // Attach even handlers
 video.addEventListener('play', setCanvasDimensions);
 snapBtn.addEventListener('click', snapPhoto);
 sendBtn.addEventListener('click', sendPhoto);
+snapAndSendBtn.addEventListener('click', snapAndSend);
 
 // Create a random room if not already present in the URL.
 var isInitiator;
@@ -288,6 +290,11 @@ function sendPhoto() {
         console.log('last ' + len % CHUNK_LEN + ' byte(s)');
         dataChannel.send(img.data.subarray(n * CHUNK_LEN));
     }
+}
+
+function snapAndSend() {
+    snapPhoto();
+    sendPhoto();
 }
 
 function renderPhoto(data) {
