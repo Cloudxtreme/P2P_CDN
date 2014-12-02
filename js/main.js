@@ -8,15 +8,26 @@ function handleImage(e){
     reader.onload = function(event){
         var img = new Image();
         img.onload = function(){
-            canvas.width = img.width;
-            canvas.height = img.height;
             canvas.drawImage(img,0,0);
         }
+        canvas.width = img.width;
+        canvas.height = img.height;
         img.src = event.target.result;
     }
     reader.readAsDataURL(e.target.files[0]);
     setCanvasDimensions()     
 }
+
+$(function() {
+    var c = document.getElementById("canvas_test");
+    var ctx = c.getContext("2d");
+    ctx.font = "14px Arial";
+    ctx.fillText("We are going to download this",5,50);
+    ctx.beginPath();
+    ctx.arc(95,75,60,0,2*Math.PI);
+    ctx.stroke();
+});
+
 
 // $(function() {
 //     setCanvasDimensions();
