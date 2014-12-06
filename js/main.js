@@ -1,8 +1,8 @@
-var imageLoader = document.getElementById('imageLoader');
-imageLoader.addEventListener('change', handleImage, false);
+// var imageLoader = document.getElementById('imageLoader');
+// imageLoader.addEventListener('change', handleImage, false);
 
 // canvas = $("#photo")[0].getContext('2d');
-canvas = $("#canvas_test")[0].getContext('2d');
+// canvas = $("#canvas_test")[0].getContext('2d');
 
 function handleImage(e){
     var reader = new FileReader();
@@ -51,10 +51,11 @@ if (!room) {
     room = window.location.hash = 1
     // if the element has not been downloaded yet
     if (!elementHasBeenDownloaded) {
-        drawCanvasElement("server");
+        // drawCanvasElement("server");
         $("#ht").attr("src", "/math.jpg");
         console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
         elementHasBeenDownloaded = true
+        $("#send_medium")[0].innerHTML = "server";
     }
 } 
 // else {

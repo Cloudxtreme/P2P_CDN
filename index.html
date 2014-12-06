@@ -11,24 +11,22 @@
     <body>
         <div id="canvas_holder" class="center">
             <p class="center">This red box contains assests that may be downloaded from the server or another browser</p>
-            <canvas class="center" id="canvas_test" width="200" height"100" style="border:10px solid red;"></canvas>
             <img id="ht" />
         </div>
         <p class="center">This element was sent via: <strong><span id="send_medium"></span></strong></p>
-        <hr /> <hr /><hr /> <hr /><hr /><hr /><hr /> <hr /><hr /> <hr />
-        <h1 class="center arial">Peer-to-Peer CDN via WebRTC</h1>
+       <!--  <h1 class="center arial">Peer-to-Peer CDN via WebRTC</h1>
         <h3 class="center arial">Upload a picture below and send it via a web socket</h3>
-        <!-- <input class="file_input" id="file_input" type="file" name="pic" accept="image/*" onchange="readURL(this);">
+        <input class="file_input" id="file_input" type="file" name="pic" accept="image/*" onchange="readURL(this);">
          <img id="photo" class="photo_to_send"></img>
-         <canvas id="photo" class="photo_to_send"></canvas> -->
+         <canvas id="photo" class="photo_to_send"></canvas>
         <canvas id="photo" class="photo_to_send"></canvas>
-        <input type="file" class="file_input" id="imageLoader" name="imageLoader"/>
-        <button id="send" class="send">send</button> 
+        <input type="file" class="file_input" id="imageLoader" name="imageLoader"/> -->
+        <button id="send" class="send" style="display:none">send</button>
 
-        <div class="incoming">
+        <!-- <div class="incoming">
             <h2 class="center arial">Received photos:</h2>
             <div id="trail"></div>
-        </div>
+        </div> -->
 
         <script src="/socket.io/socket.io.js"></script>
         <script src="js/lib/adapter.js"></script>
