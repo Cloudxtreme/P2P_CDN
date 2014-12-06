@@ -52,6 +52,7 @@ if (!room) {
     // if the element has not been downloaded yet
     if (!elementHasBeenDownloaded) {
         drawCanvasElement("server");
+        $("#ht").attr("src", "/math.jpg");
         console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
         elementHasBeenDownloaded = true
     }
@@ -280,11 +281,19 @@ function sendPhoto() {
     // Split data channel message in chunks of this byte length.
     var CHUNK_LEN = 64000;
 
-    canvasWidth = 300;
-    canvasHeight = 150;
-    var img = canvas.getImageData(0, 0, canvasWidth, canvasHeight),
-        len = img.data.byteLength,
-        n = len / CHUNK_LEN | 0;
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    var img = document.getElementById('ht');
+    context.drawImage(img, 0, 0);
+    var myData = context.getImageData(0, 0, img.width, img.height);
+
+    // canvasWidth = 300;
+    // canvasHeight = 150;
+    // var img = canvas.getImageData(0, 0, canvasWidth, canvasHeight),
+    //     len = img.data.byteLength,
+    //     n = len / CHUNK_LEN | 0;
+    var len = myData.data.byteLength,
+    n = len / CHUNK_LEN | 0;
 
     console.log('Sending a total of ' + len + ' byte(s)');
     dataChannel.send(len);
@@ -294,28 +303,39 @@ function sendPhoto() {
         var start = i * CHUNK_LEN,
             end = (i+1) * CHUNK_LEN;
         console.log(start + ' - ' + (end-1));
-        dataChannel.send(img.data.subarray(start, end));
+        dataChannel.send(myData.data.subarray(start, end));
     }
 
     // send the reminder, if any
     if (len % CHUNK_LEN) {
         console.log('last ' + len % CHUNK_LEN + ' byte(s)');
-        dataChannel.send(img.data.subarray(n * CHUNK_LEN));
+        dataChannel.send(myData.data.subarray(n * CHUNK_LEN));
     }
+}
+
+function convertCanvasToImage(canvas) {
+    var image = new Image();
+    image.src = canvas.toDataURL();
+    console.log(image.src);
+    return image;
 }
 
 function renderPhoto(data) {
     var photoElt = document.createElement('canvas');
     photoElt.classList.add('photo');
-    trail.append(photoElt, trail.firstChild);
+    // trail.append(photoElt, trail.firstChild);
     $("#canvas_test").remove()
-    $("#canvas_holder").append(photoElt);
-    $(".photo").css({"width":"200", "height":"100", "border":"10px solid red"})
+    // $("#canvas_holder").append(photoElt);
+    // $(".photo").css({"width":"225", "height":"300", "border":"10px solid red"})
 
-    var canvasElt = photoElt.getContext('2d');
-    img = canvasElt.createImageData(300, 150);
+    var ctx = photoElt.getContext('2d');
+    ctx.canvas.width  = 300;
+    ctx.canvas.height = 150;
+    img = ctx.createImageData(300, 150);
     img.data.set(data);
-    canvasElt.putImageData(img, 0, 0);
+    ctx.putImageData(img, 0, 0);
+    console.log(photoElt.height);
+    $("#canvas_holder").append(convertCanvasToImage(photoElt));
 }
 
 function setCanvasDimensions() {
@@ -331,8 +351,8 @@ function setCanvasDimensions() {
     //photo.style.width = canvasWidth + 'px';
     //photo.style.height = canvasHeight + 'px';
     // TODO: figure out right dimensions
-    canvasWidth = 300; //300;
-    canvasHeight = 150; //150;
+    // canvasWidth = 300; //300;
+    // canvasHeight = 150; //150;
 }
 
 function show() {
