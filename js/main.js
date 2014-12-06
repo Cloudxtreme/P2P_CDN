@@ -1,7 +1,8 @@
 var imageLoader = document.getElementById('imageLoader');
 imageLoader.addEventListener('change', handleImage, false);
-photo = document.getElementById('photo');
-canvas = photo.getContext('2d');
+
+// canvas = $("#photo")[0].getContext('2d');
+canvas = $("#canvas_test")[0].getContext('2d');
 
 function handleImage(e){
     var reader = new FileReader();
@@ -19,20 +20,11 @@ function handleImage(e){
 }
 
 function drawCanvasElement(text) {
-    var c = document.getElementById("canvas_test");
+    var c = document.getElementById("canvas_test")
     var ctx = c.getContext("2d");
     ctx.font = "14px Arial";
     ctx.beginPath();
     ctx.arc(95,105,20,0,2*Math.PI);
-    ctx.stroke();
-    $("#send_medium")[0].innerHTML = text;
-}
-
-function boop(text) {
-    var c = document.getElementById("canvas_test");
-    var ctx = c.getContext("2d");
-    ctx.moveTo(0,0);
-    ctx.lineTo(200,100);
     ctx.stroke();
     $("#send_medium")[0].innerHTML = text;
 }
@@ -43,6 +35,7 @@ var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
     roomURL = $("#url"),
     photo = $("#photo"),
     trail = $("#trail"),
+    canvasHolder = $("#canvasHolder"),
     sendBtn = $("#send"),
     canvasWidth, canvasHeight;
 
@@ -62,10 +55,11 @@ if (!room) {
         console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
         elementHasBeenDownloaded = true
     }
-} else {
-    console.error("boop")
-    boop("boop")
-}
+} 
+// else {
+//     $("#send_medium")[0].innerHTML = "browser";
+//     $("#send").click()
+// }
 
 /****************************************************************************
  * Signaling server 
@@ -203,6 +197,11 @@ function onDataChannelCreated(channel) {
 
     channel.onopen = function () {
         console.log('CHANNEL opened!');
+        if (isInitiator) {
+            $("#send").click()
+        }
+        else
+            $("#send_medium")[0].innerHTML = "browser";
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
@@ -309,6 +308,9 @@ function renderPhoto(data) {
     var photoElt = document.createElement('canvas');
     photoElt.classList.add('photo');
     trail.append(photoElt, trail.firstChild);
+    $("#canvas_test").remove()
+    $("#canvas_holder").append(photoElt);
+    $(".photo").css({"width":"200", "height":"100", "border":"10px solid red"})
 
     var canvasElt = photoElt.getContext('2d');
     img = canvasElt.createImageData(300, 150);
