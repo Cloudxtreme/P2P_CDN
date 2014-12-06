@@ -18,34 +18,24 @@ function handleImage(e){
     setCanvasDimensions()     
 }
 
-$(function() {
+function drawCanvasElement(text) {
     var c = document.getElementById("canvas_test");
     var ctx = c.getContext("2d");
     ctx.font = "14px Arial";
-    ctx.fillText("We are going to download this",5,50);
     ctx.beginPath();
-    ctx.arc(95,75,60,0,2*Math.PI);
+    ctx.arc(95,105,20,0,2*Math.PI);
     ctx.stroke();
-});
+    $("#send_medium")[0].innerHTML = text;
+}
 
-
-// $(function() {
-//     setCanvasDimensions();
-// });
-
-// function readURL(e){
-//     var reader = new FileReader();
-//     reader.onload = function(event){
-//         var img = new Image();
-//         img.onload = function(){
-//             canvas.width = img.width;
-//             canvas.height = img.height;
-//             ctx.drawImage(img,0,0);
-//         }
-//         img.src = event.target.result;
-//     }
-//     reader.readAsDataURL(e.target.files[0]);     
-// }
+function boop(text) {
+    var c = document.getElementById("canvas_test");
+    var ctx = c.getContext("2d");
+    ctx.moveTo(0,0);
+    ctx.lineTo(200,100);
+    ctx.stroke();
+    $("#send_medium")[0].innerHTML = text;
+}
 
 var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
 // {"url":"stun:stun.services.mozilla.com"}
@@ -57,15 +47,25 @@ var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
     canvasWidth, canvasHeight;
 
 // Attach event handlers
-sendBtn.click(sendPhoto);
+$("#send").click(sendPhoto);
 
 // Create a random room if not already present in the URL.
 var isInitiator;
 var room = window.location.hash.substring(1);
+var elementHasBeenDownloaded = false; 
 if (!room) {
-    room = window.location.hash = randomToken();
+    // room = window.location.hash = randomToken();
+    room = window.location.hash = 1
+    // if the element has not been downloaded yet
+    if (!elementHasBeenDownloaded) {
+        drawCanvasElement("server");
+        console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
+        elementHasBeenDownloaded = true
+    }
+} else {
+    console.error("boop")
+    boop("boop")
 }
-
 
 /****************************************************************************
  * Signaling server 
