@@ -100,7 +100,7 @@ if (location.hostname.match(/localhost|127\.0\.0/)) {
 }
 
 function loadRes() {
-    if (!room) {
+    if (isInitiator) {
         // room = window.location.hash = randomToken();
         room = window.location.hash = rooms[Math.floor(Math.random()*rooms.length)]
         // room = window.location.hash = 1
