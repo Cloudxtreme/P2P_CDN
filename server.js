@@ -36,35 +36,35 @@ io.sockets.on('connection', function (socket){
 		socket.broadcast.emit('message', message);
 	});
 
-	socket.on('create or join', function (room) {
-        log('Request to create or join room ' + room);
+	// socket.on('create or join', function (room) {
+ //        log('Request to create or join room ' + room);
 
-		var numClients = io.sockets.clients(room).length;
-		log('Room ' + room + ' has ' + numClients + ' client(s)');
+	// 	var numClients = io.sockets.clients(room).length;
+	// 	log('Room ' + room + ' has ' + numClients + ' client(s)');
 
-		if (numClients === 0){
-			socket.join(room);
-			socket.emit('created', room, socket.id);
+	// 	if (numClients === 0){
+	// 		socket.join(room);
+	// 		socket.emit('created', room, socket.id);
 
-		} else  {
-			socket.join(room);
-            socket.emit('joined', room, socket.id);
-            io.sockets.in(room).emit('ready');
+	// 	} else  {
+	// 		socket.join(room);
+ //            socket.emit('joined', room, socket.id);
+ //            io.sockets.in(room).emit('ready');
 
-		}
-	});
+	// 	}
+	// });
 
-    socket.on('ipaddr', function () {
-        var ifaces = os.networkInterfaces();
-        for (var dev in ifaces) {
-            ifaces[dev].forEach(function (details) {
-                if (details.family=='IPv4' && details.address != '127.0.0.1') {
-                	log("address", details.address)
-                    socket.emit('ipaddr', details.address);
-                }
-          });
-        }
-    });
+ //    socket.on('ipaddr', function () {
+ //        var ifaces = os.networkInterfaces();
+ //        for (var dev in ifaces) {
+ //            ifaces[dev].forEach(function (details) {
+ //                if (details.family=='IPv4' && details.address != '127.0.0.1') {
+ //                	log("address", details.address)
+ //                    socket.emit('ipaddr', details.address);
+ //                }
+ //          });
+ //        }
+ //    });
 
 });
 

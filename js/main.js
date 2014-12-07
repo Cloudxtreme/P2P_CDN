@@ -1,9 +1,3 @@
-// var imageLoader = document.getElementById('imageLoader');
-// imageLoader.addEventListener('change', handleImage, false);
-
-// canvas = $("#photo")[0].getContext('2d');
-// canvas = $("#canvas_test")[0].getContext('2d');
-
 function handleImage(e){
     var reader = new FileReader();
     reader.onload = function(event){
@@ -16,7 +10,6 @@ function handleImage(e){
         img.src = event.target.result;
     }
     reader.readAsDataURL(e.target.files[0]);
-    setCanvasDimensions()     
 }
 
 function drawCanvasElement(text) {
@@ -47,21 +40,16 @@ var isInitiator;
 var room = window.location.hash.substring(1);
 var elementHasBeenDownloaded = false; 
 if (!room) {
-    // room = window.location.hash = randomToken();
+    //room = window.location.hash = randomToken();
     room = window.location.hash = 1
     // if the element has not been downloaded yet
     if (!elementHasBeenDownloaded) {
-        // drawCanvasElement("server");
         $("#ht").attr("src", "/math.jpg");
         console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
         elementHasBeenDownloaded = true
         $("#send_medium")[0].innerHTML = "server";
     }
 } 
-// else {
-//     $("#send_medium")[0].innerHTML = "browser";
-//     $("#send").click()
-// }
 
 /****************************************************************************
  * Signaling server 
@@ -324,11 +312,6 @@ function convertCanvasToImage(canvas) {
 function renderPhoto(data) {
     var photoElt = document.createElement('canvas');
     photoElt.classList.add('photo');
-    // trail.append(photoElt, trail.firstChild);
-    $("#canvas_test").remove()
-    // $("#canvas_holder").append(photoElt);
-    // $(".photo").css({"width":"225", "height":"300", "border":"10px solid red"})
-
     var ctx = photoElt.getContext('2d');
     ctx.canvas.width  = 300;
     ctx.canvas.height = 150;
@@ -337,23 +320,6 @@ function renderPhoto(data) {
     ctx.putImageData(img, 0, 0);
     console.log(photoElt.height);
     $("#canvas_holder").append(convertCanvasToImage(photoElt));
-}
-
-function setCanvasDimensions() {
-    // if (video.videoWidth == 0) {
-    //     setTimeout(setCanvasDimensions, 200);
-    //     return;
-    // }
-    
-    // console.log('video width:', video.videoWidth, 'height:', video.videoHeight)
-
-    // canvasWidth = video.videoWidth / 2;
-    // canvasHeight = video.videoHeight / 2;
-    //photo.style.width = canvasWidth + 'px';
-    //photo.style.height = canvasHeight + 'px';
-    // TODO: figure out right dimensions
-    // canvasWidth = 300; //300;
-    // canvasHeight = 150; //150;
 }
 
 function show() {
