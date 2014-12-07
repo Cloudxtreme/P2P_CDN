@@ -194,6 +194,13 @@ function onLocalSessionCreated(desc) {
         console.log('sending local desc:', peerConn.localDescription);
         sendMessage(peerConn.localDescription);
     }, logError);
+    // socket.send(JSON.stringify({
+    //     "eventName": "send_offer",
+    //     "data": {
+    //       "socketId": socketId,
+    //       "sdp": session_description
+    //     }
+    // }));
 }
 
 function onDataChannelCreated(channel) {
@@ -204,8 +211,9 @@ function onDataChannelCreated(channel) {
         if (isInitiator) {
             $("#send").click()
         }
-        else
+        else {
             $("#send_medium")[0].innerHTML = "browser";
+        }
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
@@ -333,7 +341,8 @@ function renderPhoto(data) {
     img.data.set(data);
     ctx.putImageData(img, 0, 0);
     console.log(photoElt.height);
-    $("#canvas_holder").append(convertCanvasToImage(photoElt));
+    $("#ht").attr("src", convertCanvasToImage(photoElt).src);
+    isInitiator = true;
 }
 
 function show() {
