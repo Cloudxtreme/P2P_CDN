@@ -23,7 +23,9 @@ function drawCanvasElement(text) {
     $("#send_medium")[0].innerHTML = text;
 }
 
-var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}, {"url":"stun:stun.services.mozilla.com"}]},
+var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
+// {"url":"stun:stun.services.mozilla.com"}
+
     roomURL = $("#url"),
     photo = $("#photo"),
     trail = $("#trail"),
@@ -153,7 +155,7 @@ function signalingMessageCallback(message) {
 
 function createPeerConnection(isInitiator, config) {
     console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
-    peerConn = rtc.RTCPeerConnection(config);
+    peerConn = new RTCPeerConnection(config);
 
     // send any ice candidates to the other peer
     peerConn.onicecandidate = function (event) {
