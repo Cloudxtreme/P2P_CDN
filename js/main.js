@@ -53,7 +53,8 @@ var dataChannels = {};
 
 var rooms = [1,2,3,4,5]
 var room = window.location.hash.substring(1);
-loadRes();
+if (!room)
+    room = window.location.hash = rooms[Math.floor(Math.random()*rooms.length)];
 var elementHasBeenDownloaded = false; 
 
 /****************************************************************************
@@ -102,7 +103,6 @@ if (location.hostname.match(/localhost|127\.0\.0/)) {
 function loadRes() {
     if (isInitiator) {
         // room = window.location.hash = randomToken();
-        room = window.location.hash = rooms[Math.floor(Math.random()*rooms.length)]
         // room = window.location.hash = 1
         // if the element has not been downloaded yet
         if (!elementHasBeenDownloaded) {
