@@ -53,17 +53,6 @@ var dataChannels = {};
 
 var room = window.location.hash.substring(1);
 var elementHasBeenDownloaded = false; 
-if (!room) {
-    //room = window.location.hash = randomToken();
-    room = window.location.hash = 1
-    // if the element has not been downloaded yet
-    if (!elementHasBeenDownloaded) {
-        $("#ht").attr("src", "/math.jpg");
-        console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
-        elementHasBeenDownloaded = true
-        $("#send_medium")[0].innerHTML = "server";
-    }
-} 
 
 /****************************************************************************
  * Signaling server 
@@ -80,6 +69,7 @@ socket.on('ipaddr', function (ipaddr) {
 socket.on('created', function (room, clientId) {
   console.log('Created room', room, '- my client ID is', clientId);
   isInitiator = true;
+  loadRes();
 });
 
 socket.on('joined', function (room, clientId) {
@@ -105,6 +95,18 @@ socket.emit('create or join', room);
 
 if (location.hostname.match(/localhost|127\.0\.0/)) {
     socket.emit('ipaddr');
+}
+
+function loadRes() {
+    //room = window.location.hash = randomToken();
+    room = window.location.hash = 1
+    // if the element has not been downloaded yet
+    if (!elementHasBeenDownloaded) {
+        $("#ht").attr("src", "/math.jpg");
+        console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
+        elementHasBeenDownloaded = true
+        $("#send_medium")[0].innerHTML = "server";
+    }
 }
 
 /**
