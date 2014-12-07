@@ -1,3 +1,4 @@
+// var WebSocket = require('ws');
 function handleImage(e){
     var reader = new FileReader();
     reader.onload = function(event){
@@ -22,9 +23,7 @@ function drawCanvasElement(text) {
     $("#send_medium")[0].innerHTML = text;
 }
 
-var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
-// {"url":"stun:stun.services.mozilla.com"}
-
+var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}, {"url":"stun:stun.services.mozilla.com"}]},
     roomURL = $("#url"),
     photo = $("#photo"),
     trail = $("#trail"),
@@ -37,6 +36,19 @@ $("#send").click(sendPhoto);
 
 // Create a random room if not already present in the URL.
 var isInitiator;
+// Reference to the lone PeerConnection instance.
+var peerConnections = {};
+
+// Array of known peer socket ids
+var connections = [];
+// Stream-related variables.
+var streams = [];
+var numStreams = 0;
+var initializedStreams = 0;
+
+// Reference to the data channels
+var dataChannels = {};
+
 var room = window.location.hash.substring(1);
 var elementHasBeenDownloaded = false; 
 if (!room) {
@@ -141,7 +153,7 @@ function signalingMessageCallback(message) {
 
 function createPeerConnection(isInitiator, config) {
     console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
-    peerConn = new RTCPeerConnection(config);
+    peerConn = rtc.RTCPeerConnection(config);
 
     // send any ice candidates to the other peer
     peerConn.onicecandidate = function (event) {
