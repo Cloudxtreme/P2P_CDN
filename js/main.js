@@ -51,6 +51,9 @@ var connections = [];
 // Reference to the data channels
 var dataChannels = {};
 
+var photoBeganRenderingTime = new Date();
+var photoFinishedRenderingTime;
+
 var rooms = [1,2,3,4,5]
 var room = window.location.hash.substring(1);
 if (!room)
@@ -184,6 +187,9 @@ function loadRes() {
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
             elementHasBeenDownloaded = true
             $("#send_medium")[0].innerHTML = "server";
+            photoFinishedRenderingTime = new Date();
+            var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+            $("#time_to_load")[0].innerHTML = renderingTime;
         }
     } 
 }
@@ -334,6 +340,9 @@ function receiveDataChromeFactory() {
             // we're done: all data chunks have been received
             console.log('Done. Rendering photo.');
             renderPhoto(buf);
+            photoFinishedRenderingTime = new Date();
+            var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+            $("#time_to_load")[0].innerHTML = renderingTime;
         }
     }
 }
@@ -364,6 +373,9 @@ function receiveDataFirefoxFactory() {
                     if (i + 1 == parts.length) {
                         console.log('Done. Rendering photo.');
                         renderPhoto(buf);
+                        photoFinishedRenderingTime = new Date();
+                        var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+                        $("#time_to_load")[0].innerHTML = renderingTime;
                     } else {
                         compose(i + 1, pos + this.result.byteLength);
                     }
