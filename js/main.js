@@ -214,6 +214,7 @@ function signalingMessageCallback(message) {
 
     } else if (message === 'bye') {
         // TODO: cleanup RTC connection?
+        console.log("MESSSAGE", message)
     }
 }
 
