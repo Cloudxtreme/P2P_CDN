@@ -267,6 +267,8 @@ function createPeerConnection(isInitiator, config, id) {
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
     } else {
+        // dataChannel.open();
+        // dataChannel.connect();
         peerConn.ondatachannel = function (event) {
             console.log('ondatachannel:', event.channel);
             dataChannel = event.channel;
