@@ -90,10 +90,7 @@ socket.on('log', function (array) {
 
 socket.on('message', function (message){
     console.log('Client received message:', message);
-    if (message.local)
-        localSignalingMessageCallback(message);
-    else
-        remoteSignalingMessageCallback(message);
+    signalingMessageCallback(message);
 });
 
 socket.on('get_peers', function(connectArray, you) {
@@ -125,6 +122,39 @@ socket.on('new_peer', function(socketId) {
     // }
 });
 
+socket.on('close', function() {
+    // clean up connects 
+});
+
+socket.on('connect', function() {
+
+    // socket.on('get_peers', function(data) {
+    //     connections = data.connections;
+    //     id = data.you;
+    //     // if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
+    //         // rtc.addStreams()
+    //         createPeerConnections();
+    //         // rtc.addDataChannels();
+    //         // rtc.sendOffers();
+    //     // }
+    //     // fire connections event and pass peers
+    //     // rtc.fire('connections', connections);
+    //     console.log("HULLO", "connections:", connections, "peerConnections:", peerConnections, "dataChannels:", dataChannels);
+    //     console.log("ID, BABY", id)
+    // });
+
+    // socket.on('new_peer', function(data) {
+    //     var socketId = data.socketId;
+    //     connections.push(socketId);
+    //     // delete rtc.offerSent;
+
+    //     createPeerConnection(false, configuration, socketId);
+    //     // for (var i = 0; i < rtc.streams.length; i++) {
+    //     //     var stream = rtc.streams[i];
+    //     //     pc.addStream(stream);
+    //     // }
+    // });
+});
 
 socket.on('remove_peer', function(socketId) {
     var id = socketId;
@@ -185,38 +215,19 @@ function updateRoomURL(ipaddr) {
 
 var peerConn;
 var dataChannel;
-var localPeerConn, remotePeerConn, sendChannel, receiveChannel;
 
-function localSignalingMessageCallback(message) {
+function signalingMessageCallback(message) {
     if (message.type === 'offer') {
         console.log('Got offer. Sending answer to peer.');
-        localPeerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
-        localPeerConn.createAnswer(onLocalSessionCreated, logError);
+        peerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
+        peerConn.createAnswer(onLocalSessionCreated, logError);
 
     } else if (message.type === 'answer') {
         console.log('Got answer.');
-        localPeerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
+        peerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
 
     } else if (message.type === 'candidate') {
-        localPeerConn.addIceCandidate(new RTCIceCandidate({candidate: message.candidate}));
-
-    } else if (message === 'bye') {
-        // TODO: cleanup RTC connection?
-        console.log("MESSSAGE", message)
-    }
-}
-function remoteSignalingMessageCallback(message) {
-    if (message.type === 'offer') {
-        console.log('Got offer. Sending answer to peer.');
-        remotePeerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
-        remotePeerConn.createAnswer(onLocalSessionCreated, logError);
-
-    } else if (message.type === 'answer') {
-        console.log('Got answer.');
-        remotePeerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
-
-    } else if (message.type === 'candidate') {
-        remotePeerConn.addIceCandidate(new RTCIceCandidate({candidate: message.candidate}));
+        peerConn.addIceCandidate(new RTCIceCandidate({candidate: message.candidate}));
 
     } else if (message === 'bye') {
         // TODO: cleanup RTC connection?
@@ -231,77 +242,47 @@ createPeerConnections = function() {
 };
 
 function createPeerConnection(isInitiator, config, id) {
-    // if (isInitiator) {
-        console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
-        localPeerConn = peerConnections[id] = new RTCPeerConnection(config);
-        // send any ice candidates to the other peer
-        localPeerConn.onicecandidate = function (event) {
-            console.log('onIceCandidate event:', event);
-            if (event.candidate) {
-                sendMessage({
-                    type: 'candidate',
-                    label: event.candidate.sdpMLineIndex,
-                    id: event.candidate.sdpMid,
-                    candidate: event.candidate.candidate,
-                    local: false
-                });
-            } else {
-                console.log('End of candidates.');
-            }
-        };
+    console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
+    peerConn = peerConnections[id] = new RTCPeerConnection(config);
+    // send any ice candidates to the other peer
+    peerConn.onicecandidate = function (event) {
+        console.log('onIceCandidate event:', event);
+        if (event.candidate) {
+            sendMessage({
+                type: 'candidate',
+                label: event.candidate.sdpMLineIndex,
+                id: event.candidate.sdpMid,
+                candidate: event.candidate.candidate
+            });
+        } else {
+            console.log('End of candidates.');
+        }
+    };
+
+    if (isInitiator) {
         console.log('Creating Data Channel');
-        sendChannel = localPeerConn.createDataChannel("photos", {reliable: false});
-        onDataChannelCreated(sendChannel, id);
+        dataChannel = peerConn.createDataChannel("photos", {reliable: false});
+        onDataChannelCreated(dataChannel, id);
         dataChannels[id] = dataChannel
-    // } else {
-        console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
-        remotePeerConn = peerConnections[id] = new RTCPeerConnection(config);
-        // send any ice candidates to the other peer
-        remotePeerConn.onicecandidate = function (event) {
-            console.log('onIceCandidate event:', event);
-            if (event.candidate) {
-                sendMessage({
-                    type: 'candidate',
-                    label: event.candidate.sdpMLineIndex,
-                    id: event.candidate.sdpMid,
-                    candidate: event.candidate.candidate,
-                    local: true
-                });
-            } else {
-                console.log('End of candidates.');
-            }
-        };
-        console.log('Creating Data Channel');
-        receiveChannel = remotePeerConn.createDataChannel("photos", {reliable: false});
-        onDataChannelCreated(receiveChannel, id);
-        dataChannels[id] = dataChannel
-        // console.log('Creating an offer');
-        // localPeerConn.createOffer(onLocalSessionCreated, logError);
-        remotePeerConn.ondatachannel = function (event) {
-            console.log('ondatachannel:', event.channel);
-            receiveChannel = event.channel;
-            onDataChannelCreated(receiveChannel, id);
-            dataChannels[id] = receiveChannel
-        };
         console.log('Creating an offer');
-        localPeerConn.createOffer(function(desc) {
-            localPeerConn.setLocalDescription(desc);
-            remotePeerConn.setRemoteDescription(desc);
-            remotePeerConn.createAnswer(function(desc) {
-                remotePeerConn.setLocalDescription(desc);
-                localPeerConn.setRemoteDescription(desc);
-            }, logError);
-        }, logError);
-    // }
+        peerConn.createOffer(onLocalSessionCreated, logError);
+    } else {
+        peerConn.ondatachannel = function (event) {
+            console.log('ondatachannel:', event.channel);
+            dataChannel = event.channel;
+            onDataChannelCreated(dataChannel, id);
+            dataChannels[id] = dataChannel
+        };
+    }
 }
 
-// function onLocalSessionCreated(desc) {
-//     console.log('local session created:', desc);
-//     peerConn.setLocalDescription(desc, function () {
-//         console.log('sending local desc:', peerConn.localDescription);
-//         sendMessage(peerConn.localDescription);
-//     }, logError);
-// }
+function onLocalSessionCreated(desc) {
+    console.log('local session created:', desc);
+    peerConn.setLocalDescription(desc, function () {
+        console.log('sending local desc:', peerConn.localDescription);
+        sendMessage(peerConn.localDescription);
+    }, logError);
+}
 
 function onDataChannelCreated(channel, id) {
     console.log('onDataChannelCreated:', channel);
@@ -418,20 +399,20 @@ function sendPhoto() {
     n = len / CHUNK_LEN | 0;
 
     console.log('Sending a total of ' + len + ' byte(s)');
-    sendChannel.send(len);
+    dataChannel.send(len);
 
     // split the photo and send in chunks of about 64KB
     for (var i = 0; i < n; i++) {
         var start = i * CHUNK_LEN,
             end = (i+1) * CHUNK_LEN;
         console.log(start + ' - ' + (end-1));
-        sendChannel.send(myData.data.subarray(start, end));
+        dataChannel.send(myData.data.subarray(start, end));
     }
 
     // send the reminder, if any
     if (len % CHUNK_LEN) {
         console.log('last ' + len % CHUNK_LEN + ' byte(s)');
-        sendChannel.send(myData.data.subarray(n * CHUNK_LEN));
+        dataChannel.send(myData.data.subarray(n * CHUNK_LEN));
     }
 }
 
