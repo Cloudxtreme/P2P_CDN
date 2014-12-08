@@ -1,3 +1,5 @@
+var RTCPeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
+
 // var WebSocket = require('ws');
 function handleImage(e){
     var reader = new FileReader();
@@ -235,7 +237,7 @@ function createPeerConnection(isInitiator, config, id) {
                 type: 'candidate',
                 label: event.candidate.sdpMLineIndex,
                 id: event.candidate.sdpMid,
-                socketId: id,
+                // socketId: id,
                 candidate: event.candidate.candidate
             });
         } else {
@@ -245,7 +247,7 @@ function createPeerConnection(isInitiator, config, id) {
 
     if (isInitiator) {
         console.log('Creating Data Channel');
-        dataChannel = peerConn.createDataChannel("photos");
+        dataChannel = peerConn.createDataChannel("photos", {reliable: false});
         onDataChannelCreated(dataChannel);
         dataChannels[id] = dataChannel
         console.log('Creating an offer');
@@ -279,6 +281,10 @@ function onDataChannelCreated(channel) {
         else {
             $("#send_medium")[0].innerHTML = "browser";
         }
+    };
+
+    channel.onerror = function (e) {
+        console.log('CHANNEL fucked!', e);
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
