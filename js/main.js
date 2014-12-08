@@ -156,6 +156,17 @@ socket.on('connect', function() {
     // });
 });
 
+socket.on('remove_peer', function(socketId) {
+    var id = socketId;
+    // rtc.fire('disconnect stream', id);
+    if (typeof(peerConnections[id]) !== 'undefined')
+        peerConnections[id].close();
+    delete peerConnections[id];
+    delete dataChannels[id];
+    delete connections[id];
+    console.info("Client side Clean!!");
+});
+
 // Join a room
 socket.emit('create or join', room);
 
@@ -294,6 +305,7 @@ function onDataChannelCreated(channel, id) {
         delete dataChannels[id];
         delete peerConnections[id];
         delete connections[id];
+        console.info("dataChannel popped on client!!");
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
