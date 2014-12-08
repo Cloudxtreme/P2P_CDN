@@ -122,6 +122,10 @@ socket.on('new_peer', function(socketId) {
     // }
 });
 
+socket.on('close', function() {
+    // clean up connects 
+});
+
 socket.on('connect', function() {
 
     // socket.on('get_peers', function(data) {
@@ -227,6 +231,7 @@ function signalingMessageCallback(message) {
 
     } else if (message === 'bye') {
         // TODO: cleanup RTC connection?
+        console.log("MESSSAGE", message)
     }
 }
 

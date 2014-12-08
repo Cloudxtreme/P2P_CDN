@@ -3,3 +3,4 @@
 Known Bugs
 =============
 Sending pictures bigger than 300 x 150, which is default canvas size
+Get p2pcdn.heroku working (e.g., not just on local...)
