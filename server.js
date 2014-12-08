@@ -45,6 +45,52 @@ io.sockets.on('connection', function (socket){
 		var numClients = io.sockets.clients(room).length;
 		log('Room ' + room + ' has ' + numClients + ' client(s)');
 
+        //   var connectionsId = [];
+        //   var roomList = rtc.rooms[data.room] || [];
+
+        //   roomList.push(socket.id);
+        //   rtc.rooms[data.room] = roomList;
+
+
+        //   for (var i = 0; i < roomList.length; i++) {
+        //     var id = roomList[i];
+
+        //     if (id == socket.id) {
+        //       continue;
+        //     } else {
+
+        //       connectionsId.push(id);
+        //       var soc = rtc.getSocket(id);
+
+        //       // inform the peers that they have a new peer
+        //       if (soc) {
+        //         soc.send(JSON.stringify({
+        //           "eventName": "new_peer_connected",
+        //           "data":{
+        //             "socketId": socket.id
+        //           }
+        //         }), function(error) {
+        //           if (error) {
+        //             console.log(error);
+        //           }
+        //         });
+        //       }
+        //     }
+        //   }
+        //   // send new peer a list of all prior peers
+        //   socket.send(JSON.stringify({
+        //     "eventName": "get_peers",
+        //     "data": {
+        //       "connections": connectionsId,
+        //       "you": socket.id
+        //     }
+        //   }), function(error) {
+        //     if (error) {
+        //       console.log(error);
+        //     }
+        //   });
+        // });
+
 		if (numClients === 0){
 			socket.join(room);
 			socket.emit('created', room, socket.id);

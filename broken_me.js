@@ -39,25 +39,28 @@ $("#send").click(sendPhoto);
 // All the information about this client
 var _me = {}
 // Create a random room if not already present in the URL.
-var isInitiator;
+_me.isInitiator;
 // Reference to the lone PeerConnection instance.
-var peerConnections = {};
+_me.peerConnections = {};
 
 // Array of known peer socket ids
-var connections = [];
+_me.connections = [];
+
 // Stream-related variables.
-var streams = [];
-var numStreams = 0;
-var initializedStreams = 0;
+_me.streams = [];
+_me.numStreams = 0;
+_me.initializedStreams = 0;
 
 // Reference to the data channels
-var dataChannels = {};
+_me.dataChannels = {};
 
 var rooms = [1,2,3,4,5]
-var room = window.location.hash.substring(1);
-if (!room)
-    room = window.location.hash = rooms[Math.floor(Math.random()*rooms.length)];
-var elementHasBeenDownloaded = false; 
+_me.room = window.location.hash.substring(1);
+if (!_me.room)
+    _me.room = window.location.hash = rooms[Math.floor(Math.random()*rooms.length)];
+
+// Keep track of whether data has been loaded
+_me.dataLoaded = false; 
 
 /****************************************************************************
  * Signaling server 
@@ -77,8 +80,8 @@ socket.on('created', function (room, clientId) {
   loadRes();
 });
 
-socket.on('joined', function (room, clientId) {
-  console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
+socket.on('joined', function (room, clientId, socket) {
+  console.log('This peer has joined room', room, 'with client ID', clientId, "with socket info", socket);
   isInitiator = false;
 });
 
@@ -95,22 +98,56 @@ socket.on('message', function (message){
     signalingMessageCallback(message);
 });
 
+socket.on('connect', function() {
+      // rtc.on('get_peers', function(data) {
+      //   rtc.connections = data.connections;
+      //   rtc._me = data.you;
+      //   if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
+      //     rtc.createPeerConnections();
+      //     rtc.addStreams();
+      //     rtc.addDataChannels();
+      //     rtc.sendOffers();
+      //   }
+      //   // fire connections event and pass peers
+      //   rtc.fire('connections', rtc.connections);
+      // });
+
+      // rtc.on('receive_ice_candidate', function(data) {
+      //   var candidate = new nativeRTCIceCandidate(data);
+      //   rtc.peerConnections[data.socketId].addIceCandidate(candidate);
+      //   rtc.fire('receive ice candidate', candidate);
+      // });
+
+      // rtc.on('new_peer_connected', function(data) {
+      //   var id = data.socketId;
+      //   rtc.connections.push(id);
+      //   delete rtc.offerSent;
+
+      //   var pc = rtc.createPeerConnection(id);
+      //   for (var i = 0; i < rtc.streams.length; i++) {
+      //     var stream = rtc.streams[i];
+      //     pc.addStream(stream);
+      //   }
+      // });
+    console.log("HULLO");
+});
+
 // Join a room
-socket.emit('create or join', room);
+socket.emit('create or join', _me.room);
 
 if (location.hostname.match(/localhost|127\.0\.0/)) {
     socket.emit('ipaddr');
 }
 
 function loadRes() {
-    if (isInitiator) {
+    if (_me.isInitiator) {
         // room = window.location.hash = randomToken();
         // room = window.location.hash = 1
         // if the element has not been downloaded yet
-        if (!elementHasBeenDownloaded) {
+        if (!_me.dataLoaded) {
             $("#ht").attr("src", "/math.jpg");
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
-            elementHasBeenDownloaded = true
+            _me.dataLoaded = true
             $("#send_medium")[0].innerHTML = "server";
         }
     } 
@@ -132,7 +169,7 @@ function updateRoomURL(ipaddr) {
     if (!ipaddr) {
         url = location.href
     } else {
-        url = location.protocol + '//' + ipaddr + ':2013/#' + room
+        url = location.protocol + '//' + ipaddr + ':2013/#' + _me.room
     }
     roomURL.innerHTML = url;
 }
@@ -203,13 +240,6 @@ function onLocalSessionCreated(desc) {
         console.log('sending local desc:', peerConn.localDescription);
         sendMessage(peerConn.localDescription);
     }, logError);
-    // socket.send(JSON.stringify({
-    //     "eventName": "send_offer",
-    //     "data": {
-    //       "socketId": socketId,
-    //       "sdp": session_description
-    //     }
-    // }));
 }
 
 function onDataChannelCreated(channel) {
@@ -217,7 +247,7 @@ function onDataChannelCreated(channel) {
 
     channel.onopen = function () {
         console.log('CHANNEL opened!');
-        if (isInitiator) {
+        if (_me.isInitiator) {
             $("#send").click()
         }
         else {
@@ -250,6 +280,8 @@ function receiveDataChromeFactory() {
         if (count == buf.byteLength) {
             // we're done: all data chunks have been received
             console.log('Done. Rendering photo.');
+            _me.dataLoaded = true;
+            _me.isInitiator = true;
             renderPhoto(buf);
         }
     }
@@ -280,6 +312,8 @@ function receiveDataFirefoxFactory() {
                     buf.set(new Uint8ClampedArray(this.result), pos);
                     if (i + 1 == parts.length) {
                         console.log('Done. Rendering photo.');
+                        _me.dataLoaded = true;
+                        _me.isInitiator = true;
                         renderPhoto(buf);
                     } else {
                         compose(i + 1, pos + this.result.byteLength);
@@ -351,7 +385,6 @@ function renderPhoto(data) {
     ctx.putImageData(img, 0, 0);
     console.log(photoElt.height);
     $("#ht").attr("src", convertCanvasToImage(photoElt).src);
-    isInitiator = true;
 }
 
 function show() {
