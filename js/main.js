@@ -122,6 +122,10 @@ socket.on('new_peer', function(socketId) {
     // }
 });
 
+socket.on('close', function() {
+    // clean up connects 
+});
+
 socket.on('connect', function() {
 
     // socket.on('get_peers', function(data) {
