@@ -1,3 +1,5 @@
+var RTCPeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
+
 // var WebSocket = require('ws');
 function handleImage(e){
     var reader = new FileReader();
@@ -244,7 +246,7 @@ function createPeerConnection(isInitiator, config, id) {
 
     if (isInitiator) {
         console.log('Creating Data Channel');
-        dataChannel = peerConn.createDataChannel("photos");
+        dataChannel = peerConn.createDataChannel("photos", {reliable: false});
         onDataChannelCreated(dataChannel);
         dataChannels[id] = dataChannel
         console.log('Creating an offer');
