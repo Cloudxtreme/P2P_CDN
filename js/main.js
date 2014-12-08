@@ -241,7 +241,6 @@ function createPeerConnection(isInitiator, config, id) {
                 type: 'candidate',
                 label: event.candidate.sdpMLineIndex,
                 id: event.candidate.sdpMid,
-                // socketId: id,
                 candidate: event.candidate.candidate
             });
         } else {
@@ -252,7 +251,7 @@ function createPeerConnection(isInitiator, config, id) {
     if (isInitiator) {
         console.log('Creating Data Channel');
         dataChannel = peerConn.createDataChannel("photos", {reliable: false});
-        onDataChannelCreated(dataChannel);
+        onDataChannelCreated(dataChannel, id);
         dataChannels[id] = dataChannel
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
@@ -260,7 +259,7 @@ function createPeerConnection(isInitiator, config, id) {
         peerConn.ondatachannel = function (event) {
             console.log('ondatachannel:', event.channel);
             dataChannel = event.channel;
-            onDataChannelCreated(dataChannel);
+            onDataChannelCreated(dataChannel, id);
             dataChannels[id] = dataChannel
         };
     }
@@ -274,7 +273,7 @@ function onLocalSessionCreated(desc) {
     }, logError);
 }
 
-function onDataChannelCreated(channel) {
+function onDataChannelCreated(channel, id) {
     console.log('onDataChannelCreated:', channel);
 
     channel.onopen = function () {
@@ -288,7 +287,13 @@ function onDataChannelCreated(channel) {
     };
 
     channel.onerror = function (e) {
-        console.log('CHANNEL fucked!', e);
+        console.log('CHANNEL error!', e);
+    };
+
+    channel.onclose = function() {
+        delete dataChannels[id];
+        delete peerConnections[id];
+        delete connections[id];
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
