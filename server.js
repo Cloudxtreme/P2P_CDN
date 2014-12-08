@@ -107,7 +107,7 @@ io.sockets.on('connection', function (socket){
         rtc[room].push(socket.id)
 	});
 
-    socket.on('close', function() {
+    socket.on('disconnect', function() {
         // find socket to remove
         var i = io.sockets.indexOf(socket);
         // remove socket
