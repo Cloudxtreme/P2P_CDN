@@ -37,18 +37,14 @@ var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
 $("#send").click(sendPhoto);
 
 // All the information about this client
-var _me = {}
+var _me = {};
+var id;
 // Create a random room if not already present in the URL.
 var isInitiator;
 // Reference to the lone PeerConnection instance.
 var peerConnections = {};
-
 // Array of known peer socket ids
 var connections = [];
-// Stream-related variables.
-var streams = [];
-var numStreams = 0;
-var initializedStreams = 0;
 
 // Reference to the data channels
 var dataChannels = {};
@@ -83,7 +79,7 @@ socket.on('joined', function (room, clientId) {
 });
 
 socket.on('ready', function () {
-    createPeerConnection(isInitiator, configuration);
+    createPeerConnection(isInitiator, configuration, socket.id);
 })
 
 socket.on('log', function (array) {
@@ -93,6 +89,65 @@ socket.on('log', function (array) {
 socket.on('message', function (message){
     console.log('Client received message:', message);
     signalingMessageCallback(message);
+});
+
+socket.on('get_peers', function(connectArray, you) {
+    // connections = data.connections;
+    // id = data.you;
+    id = you;
+    connections = connectArray;
+    // if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
+        // rtc.addStreams()
+        createPeerConnections();
+        // rtc.addDataChannels();
+        // rtc.sendOffers();
+    // }
+    // fire connections event and pass peers
+    // rtc.fire('connections', connections);
+    console.log("HULLO", "connections:", connections, "peerConnections:", peerConnections, "dataChannels:", dataChannels);
+    console.log("ID, BABY", id)
+});
+
+socket.on('new_peer', function(socketId) {
+    // var socketId = data.socketId;
+    connections.push(socketId);
+    // delete rtc.offerSent;
+
+    createPeerConnection(false, configuration, socketId);
+    // for (var i = 0; i < rtc.streams.length; i++) {
+    //     var stream = rtc.streams[i];
+    //     pc.addStream(stream);
+    // }
+});
+
+socket.on('connect', function() {
+
+    // socket.on('get_peers', function(data) {
+    //     connections = data.connections;
+    //     id = data.you;
+    //     // if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
+    //         // rtc.addStreams()
+    //         createPeerConnections();
+    //         // rtc.addDataChannels();
+    //         // rtc.sendOffers();
+    //     // }
+    //     // fire connections event and pass peers
+    //     // rtc.fire('connections', connections);
+    //     console.log("HULLO", "connections:", connections, "peerConnections:", peerConnections, "dataChannels:", dataChannels);
+    //     console.log("ID, BABY", id)
+    // });
+
+    // socket.on('new_peer', function(data) {
+    //     var socketId = data.socketId;
+    //     connections.push(socketId);
+    //     // delete rtc.offerSent;
+
+    //     createPeerConnection(false, configuration, socketId);
+    //     // for (var i = 0; i < rtc.streams.length; i++) {
+    //     //     var stream = rtc.streams[i];
+    //     //     pc.addStream(stream);
+    //     // }
+    // });
 });
 
 // Join a room
@@ -162,10 +217,15 @@ function signalingMessageCallback(message) {
     }
 }
 
-function createPeerConnection(isInitiator, config) {
-    console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
-    peerConn = new RTCPeerConnection(config);
+createPeerConnections = function() {
+    for (var i = 0; i < connections.length; i++) {
+        createPeerConnection(false, configuration, connections[i]);
+    }
+};
 
+function createPeerConnection(isInitiator, config, id) {
+    console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
+    peerConn = peerConnections[id] = new RTCPeerConnection(config);
     // send any ice candidates to the other peer
     peerConn.onicecandidate = function (event) {
         console.log('onIceCandidate event:', event);
@@ -174,6 +234,7 @@ function createPeerConnection(isInitiator, config) {
                 type: 'candidate',
                 label: event.candidate.sdpMLineIndex,
                 id: event.candidate.sdpMid,
+                socketId: id,
                 candidate: event.candidate.candidate
             });
         } else {
@@ -185,7 +246,7 @@ function createPeerConnection(isInitiator, config) {
         console.log('Creating Data Channel');
         dataChannel = peerConn.createDataChannel("photos");
         onDataChannelCreated(dataChannel);
-
+        dataChannels[id] = dataChannel
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
     } else {
@@ -193,6 +254,7 @@ function createPeerConnection(isInitiator, config) {
             console.log('ondatachannel:', event.channel);
             dataChannel = event.channel;
             onDataChannelCreated(dataChannel);
+            dataChannels[id] = dataChannel
         };
     }
 }
@@ -203,13 +265,6 @@ function onLocalSessionCreated(desc) {
         console.log('sending local desc:', peerConn.localDescription);
         sendMessage(peerConn.localDescription);
     }, logError);
-    // socket.send(JSON.stringify({
-    //     "eventName": "send_offer",
-    //     "data": {
-    //       "socketId": socketId,
-    //       "sdp": session_description
-    //     }
-    // }));
 }
 
 function onDataChannelCreated(channel) {

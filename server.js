@@ -47,55 +47,50 @@ io.sockets.on('connection', function (socket){
 		var numClients = io.sockets.clients(room).length;
 		log('Room ' + room + ' has ' + numClients + ' client(s)');
 
-        // initialize a new room if we don't already have one
-        if (!rtc.hasOwnProperty(room)) {
-            rtc[room] = []
+        rtc[room] = rtc[room] || [];
+        var connectionIds = [];
+
+        for (var i = 0; i < rtc[room].length; i++) {
+            var id = rtc[room][i];
+            if (id != socket.id) {
+                // build a list of peers we want to connect this node to
+                connectionIds.push(id)
+                // code //
+                var sock;
+                for (var j = 0; j < io.sockets.length; j++) {
+                    sock = io.sockets[i];
+                    if (id === sock.id) {
+                        break;
+                    }
+                }
+                if (sock) {
+                    sock.emit("new_peer", socket.id);
+                    // sock.send(JSON.stringify({
+                    //     "eventName": "new_peer",
+                    //     "data": {
+                    //         "socketId": socket.id
+                    //     }
+                    // // }), function(error) {
+                    //       if (error) {
+                    //         console.log(error);
+                    //       }
+                    // });
+                }
+            }
         }
 
-        //   var connectionsId = [];
-        //   var roomList = rtc.rooms[data.room] || [];
-
-        //   roomList.push(socket.id);
-        //   rtc.rooms[data.room] = roomList;
-
-
-        //   for (var i = 0; i < roomList.length; i++) {
-        //     var id = roomList[i];
-
-        //     if (id == socket.id) {
-        //       continue;
-        //     } else {
-
-        //       connectionsId.push(id);
-        //       var soc = rtc.getSocket(id);
-
-        //       // inform the peers that they have a new peer
-        //       if (soc) {
-        //         soc.send(JSON.stringify({
-        //           "eventName": "new_peer_connected",
-        //           "data":{
-        //             "socketId": socket.id
-        //           }
-        //         }), function(error) {
-        //           if (error) {
-        //             console.log(error);
-        //           }
-        //         });
-        //       }
-        //     }
-        //   }
-        //   // send new peer a list of all prior peers
-        //   socket.send(JSON.stringify({
+        // send new peer a list of all prior peers
+        socket.emit("get_peers", connectionIds, socket.id);
+        // socket.send(JSON.stringify({
         //     "eventName": "get_peers",
         //     "data": {
-        //       "connections": connectionsId,
-        //       "you": socket.id
+        //         "connections": connectionIds,
+        //         "you": socket.id
         //     }
-        //   }), function(error) {
+        // }), function(error) {
         //     if (error) {
-        //       console.log(error);
+        //         console.log(error);
         //     }
-        //   });
         // });
 
 		if (numClients === 0){
@@ -108,7 +103,6 @@ io.sockets.on('connection', function (socket){
             io.sockets.in(room).emit('ready');
 
 		}
-
         // push each socket id into it's respective room
         rtc[room].push(socket.id)
 	});
