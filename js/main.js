@@ -236,7 +236,7 @@ function createPeerConnection(isInitiator, config, id) {
                 type: 'candidate',
                 label: event.candidate.sdpMLineIndex,
                 id: event.candidate.sdpMid,
-                socketId: id,
+                // socketId: id,
                 candidate: event.candidate.candidate
             });
         } else {
