@@ -58,7 +58,7 @@ io.sockets.on('connection', function (socket){
                 // code //
                 var sock;
                 for (var j = 0; j < io.sockets.length; j++) {
-                    sock = io.sockets[i];
+                    sock = io.sockets[j];
                     if (id === sock.id) {
                         break;
                     }
@@ -106,6 +106,46 @@ io.sockets.on('connection', function (socket){
         // push each socket id into it's respective room
         rtc[room].push(socket.id)
 	});
+
+    socket.on('close', function() {
+        // find socket to remove
+        var i = io.sockets.indexOf(socket);
+        // remove socket
+        io.sockets.splice(i, 1);
+
+        // remove from rooms and send remove_peer_connected to all sockets in room
+        var room;
+        for (var key in rtc) {
+
+            room = rtc[key];
+            var exist = room.indexOf(socket.id);
+
+            if (exist !== -1) {
+                room.splice(room.indexOf(socket.id), 1);
+                for (var j = 0; j < room.length; j++) {
+                    console.log(room[j]);
+                    var sock;
+                    for (var k = 0; k < io.sockets.length; k++) {
+                        sock = io.sockets[k];
+                        if (id === sock.id) {
+                            break;
+                        }
+                    }
+                    if (sock) {
+                        sock.emit("remove_peer", socket.id);
+                    }
+                }
+                break;
+            }
+        }
+        console.info("Server side Clean!!");
+      // // we are leaved the room so lets notify about that
+      // rtc.fire('room_leave', room, socket.id);
+      
+      // // call the disconnect callback
+      // rtc.fire('disconnect', rtc);
+
+    });
 
     socket.on('ipaddr', function () {
         var ifaces = os.networkInterfaces();
