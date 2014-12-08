@@ -282,6 +282,10 @@ function onDataChannelCreated(channel) {
         }
     };
 
+    channel.onerror = function (e) {
+        console.log('CHANNEL fucked!', e);
+    };
+
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
         receiveDataFirefoxFactory() :
         receiveDataChromeFactory();
