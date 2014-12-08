@@ -25,9 +25,9 @@ server.listen(app.get('port'), function() {
   console.log("Node app is running at localhost:" + app.get('port'))
 })
 
-
+var allClients = [];
 io.sockets.on('connection', function (socket){
-
+    allClients.push(socket);
     // convenience function to log server messages on the client
     function log(){
 		var array = [">>> Message from server:"];
@@ -57,8 +57,8 @@ io.sockets.on('connection', function (socket){
                 connectionIds.push(id)
                 // code //
                 var sock;
-                for (var j = 0; j < io.sockets.length; j++) {
-                    sock = io.sockets[j];
+                for (var j = 0; j < allClients.length; j++) {
+                    sock = allClients[j];
                     if (id === sock.id) {
                         break;
                     }
@@ -109,9 +109,9 @@ io.sockets.on('connection', function (socket){
 
     socket.on('disconnect', function() {
         // find socket to remove
-        var i = io.sockets.indexOf(socket);
+        var i = allClients.indexOf(socket);
         // remove socket
-        io.sockets.splice(i, 1);
+        allClients.splice(i, 1);
 
         // remove from rooms and send remove_peer_connected to all sockets in room
         var room;
@@ -125,9 +125,9 @@ io.sockets.on('connection', function (socket){
                 for (var j = 0; j < room.length; j++) {
                     console.log(room[j]);
                     var sock;
-                    for (var k = 0; k < io.sockets.length; k++) {
-                        sock = io.sockets[k];
-                        if (id === sock.id) {
+                    for (var k = 0; k < allClients.length; k++) {
+                        sock = allClients[k];
+                        if (room[j] === sock.id) {
                             break;
                         }
                     }
