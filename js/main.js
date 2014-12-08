@@ -300,6 +300,7 @@ function onDataChannelCreated(channel, id) {
         delete dataChannels[id];
         delete peerConnections[id];
         delete connections[id];
+        console.info("dataChannel popped on client!!");
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
