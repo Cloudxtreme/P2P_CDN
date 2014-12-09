@@ -56,6 +56,14 @@ var currentDataChannel;
 var photoBeganRenderingTime = new Date();
 var photoFinishedRenderingTime;
 
+var isDataChannelLive = false;
+
+setTimeout(function() {
+    if (!isDataChannelLive) {
+        loadRes();
+    }
+}, 20);
+
 var rooms = [1,2,3,4,5]
 var room = window.location.hash.substring(1);
 if (!room)
@@ -286,6 +294,7 @@ function onDataChannelCreated(channel, id) {
     console.log("My id is", my_id, "I", being, " an initiator, and I CREATED a DataChannel with", id);
 
     channel.onopen = function () {
+        isDataChannelLive = true;
         console.log('CHANNEL opened!');
         if (isInitiator) {
             console.info("about to send...");
@@ -306,7 +315,7 @@ function onDataChannelCreated(channel, id) {
         delete dataChannels[id];
         delete peerConnections[id];
         delete connections[id];
-        console.info("dataChannel killed on client!!");
+        console.info("dataChannel killed on client!");
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
