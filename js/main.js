@@ -47,6 +47,7 @@ var isInitiator;
 var peerConnections = {};
 // Array of known peer socket ids
 var connections = [];
+var initiatorConnections = [];
 
 // Reference to the data channels
 var dataChannels = {};
@@ -75,12 +76,16 @@ socket.on('ipaddr', function (ipaddr) {
 socket.on('created', function (room, clientId) {
   console.log('Created room', room, '- my client ID is', clientId);
   isInitiator = true;
+  initiatorConnections.push(clientId);
   loadRes();
 });
 
 socket.on('joined', function (room, clientId) {
-  console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
-  isInitiator = false;
+    console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
+    connections.push(socketId);
+    // delete rtc.offerSent;
+    createPeerConnection(isInitiator, configuration, socketId);
+    isInitiator = false;
 });
 
 socket.on('ready', function () {
@@ -401,9 +406,9 @@ function receiveDataFirefoxFactory() {
  ****************************************************************************/
 
 function sendPhoto() {
-
-    var dataChannel = dataChannels[connections[Math.floor(Math.random()*connections.length)]];
-    console.info("tits", dataChannels, dataChannel);
+    var dcid = initiatorConnections[Math.floor(Math.random()*connections.length)];
+    var dataChannel = dataChannels[dcid];
+    console.info("I have chosen dataChannel ", dataChannel, " with id ", dcid);
 
 
     // Split data channel message in chunks of this byte length.
@@ -460,6 +465,7 @@ function renderPhoto(data) {
     console.log(photoElt.height);
     $("#ht").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
+    initiatorConnections.push(id);
 }
 
 function show() {

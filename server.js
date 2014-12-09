@@ -55,27 +55,27 @@ io.sockets.on('connection', function (socket){
             if (id != socket.id) {
                 // build a list of peers we want to connect this node to
                 connectionIds.push(id)
-                // code //
-                var sock;
-                for (var j = 0; j < allClients.length; j++) {
-                    sock = allClients[j];
-                    if (id === sock.id) {
-                        break;
-                    }
-                }
-                if (sock) {
-                    sock.emit("new_peer", socket.id);
-                    // sock.send(JSON.stringify({
-                    //     "eventName": "new_peer",
-                    //     "data": {
-                    //         "socketId": socket.id
-                    //     }
-                    // // }), function(error) {
-                    //       if (error) {
-                    //         console.log(error);
-                    //       }
-                    // });
-                }
+                // // code //
+                // var sock;
+                // for (var j = 0; j < allClients.length; j++) {
+                //     sock = allClients[j];
+                //     if (id === sock.id) {
+                //         break;
+                //     }
+                // }
+                // if (sock) {
+                //     sock.emit("new_peer", socket.id);
+                //     // sock.send(JSON.stringify({
+                //     //     "eventName": "new_peer",
+                //     //     "data": {
+                //     //         "socketId": socket.id
+                //     //     }
+                //     // // }), function(error) {
+                //     //       if (error) {
+                //     //         console.log(error);
+                //     //       }
+                //     // });
+                // }
             }
         }
 
