@@ -58,11 +58,7 @@ var photoFinishedRenderingTime;
 
 var isDataChannelLive = false;
 
-setTimeout(function() {
-    if (!isDataChannelLive) {
-        loadRes();
-    }
-}, 20);
+// alert(d3.version);
 
 var rooms = [1,2,3,4,5]
 var room = window.location.hash.substring(1);
@@ -484,6 +480,6 @@ function randomToken() {
 }
 
 function logError(err) {
-    alert("error, bitch");
+    alert("error, bitch", err.toString(), err);
     console.log(err.toString(), err);
 }

@@ -6,6 +6,7 @@ var server = http.createServer(app);
 var os = require('os');
 var io = require('socket.io').listen(server);
 var stats = require('measured').createCollection();
+// var d3 = require("d3");
 
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
