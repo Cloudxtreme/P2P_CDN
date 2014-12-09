@@ -51,6 +51,7 @@ var nonInitiatorConnections = [];
 
 // Reference to the data channels
 var dataChannels = {};
+var currentDataChannel;
 
 var photoBeganRenderingTime = new Date();
 var photoFinishedRenderingTime;
@@ -147,9 +148,11 @@ function loadRes() {
             socket.emit('downloaded', room);
             elementHasBeenDownloaded = true
             $("#send_medium")[0].innerHTML = "server";
-            photoFinishedRenderingTime = new Date();
-            var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
-            $("#time_to_load")[0].innerHTML = renderingTime;
+            $("#ht").load(function() {
+                photoFinishedRenderingTime = new Date();
+                var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+                $("#time_to_load")[0].innerHTML = renderingTime;
+            });
         }
     } 
 }
@@ -229,7 +232,7 @@ function createPeerConnection(isInitiator, config, peer_id) {
 
     if (isInitiator) {
         console.log("My id is", my_id, "and I am creating a DataChannel with", peer_id);
-        dataChannels[peer_id] = peerConn.createDataChannel("photos", {reliable: false});
+        dataChannels[peer_id] = peerConn.createDataChannel("photos " + my_id, {reliable: false});
         onDataChannelCreated(dataChannels[peer_id], peer_id);
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
@@ -302,10 +305,10 @@ function receiveDataChromeFactory() {
         if (count == buf.byteLength) {
             // we're done: all data chunks have been received
             console.log('Done. Rendering photo.');
-            renderPhoto(buf);
             photoFinishedRenderingTime = new Date();
             var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
             $("#time_to_load")[0].innerHTML = renderingTime;
+            renderPhoto(buf);
         }
     }
 }
@@ -335,10 +338,10 @@ function receiveDataFirefoxFactory() {
                     buf.set(new Uint8ClampedArray(this.result), pos);
                     if (i + 1 == parts.length) {
                         console.log('Done. Rendering photo.');
-                        renderPhoto(buf);
                         photoFinishedRenderingTime = new Date();
                         var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
                         $("#time_to_load")[0].innerHTML = renderingTime;
+                        renderPhoto(buf);
                     } else {
                         compose(i + 1, pos + this.result.byteLength);
                     }
@@ -357,9 +360,11 @@ function receiveDataFirefoxFactory() {
 
 function sendPhoto() {
     var dcid = connections[Math.floor(Math.random()*connections.length)];
-    var dataChannel = dataChannels[dcid];
+    var dataChannel = dataChannels[Object.keys(dataChannels)[0]];
     console.info("I have chosen dataChannel ", dataChannel, " with id ", dcid);
 
+    console.error(dcid);
+    currentDataChannel = dcid;
 
     // Split data channel message in chunks of this byte length.
     var CHUNK_LEN = 64000;
@@ -394,8 +399,9 @@ function sendPhoto() {
         console.log('last ' + len % CHUNK_LEN + ' byte(s)');
         dataChannel.send(myData.data.subarray(n * CHUNK_LEN));
     }
-    dataChannel.close();
-    delete dataChannels[dcid];
+    // dataChannel.close();
+    // delete dataChannels[dcid];
+    console.error(dataChannels, dataChannel);
 }
 
 function convertCanvasToImage(canvas) {
@@ -416,6 +422,11 @@ function renderPhoto(data) {
     $("#ht").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
     socket.emit('downloaded', room);
+
+    // console.error(dataChannels, currentDataChannel);
+    dataChannels[Object.keys(dataChannels)[0]].close();
+    delete dataChannels[Object.keys(dataChannels)[0]];
+    peerConn.close();
 }
 
 function show() {
@@ -437,4 +448,3 @@ function randomToken() {
 function logError(err) {
     console.log(err.toString(), err);
 }
-
