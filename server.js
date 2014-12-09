@@ -17,11 +17,6 @@ app.get('/', function(request, response) {
   file.serve(request, response);
 })
 
-stats.meter('requestsPerSecond').mark();
-setInterval(function() {
-    console.log(stats.toJSON());
-}, 1000);
-
 // server-side object to store
 // information about our clients.
 // used for signaling
@@ -37,6 +32,10 @@ var allClients = [];
 
 // when a socket connects to the server
 io.sockets.on('connection', function (socket){
+    stats.meter('requestsPerSecond').mark();
+    setInterval(function() {
+        console.log(stats.toJSON());
+    }, 1000);
     
     // push the connected sockets into allClients array
     allClients.push(socket);
