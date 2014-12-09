@@ -6,29 +6,36 @@ var server = http.createServer(app);
 var os = require('os');
 var io = require('socket.io').listen(server);
 
-
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
 app.use('/css', express.static(__dirname + '/css'))
 app.use('/js', express.static(__dirname + '/js'))
-
-var rtc = {};
 
 var file = new(static.Server)();
 app.get('/', function(request, response) {
   file.serve(request, response);
 })
 
-// var webRTC = require('rtc_server').listen(app.get('port'));
+// server-side object to store
+// information about our clients.
+// used for signaling
+var rtc = {};
 
+// make the server listen at some port
 server.listen(app.get('port'), function() {
   console.log("Node app is running at localhost:" + app.get('port'))
 })
 
+// an array of all open sockets
 var allClients = [];
+
+// when a socket connects to the server
 io.sockets.on('connection', function (socket){
+    
+    // push the connected sockets into allClients array
     allClients.push(socket);
-    // convenience function to log server messages on the client
+
+    // let's us log messages on the console
     function log(){
 		var array = [">>> Message from server:"];
         array.push.apply(array, arguments);
@@ -41,73 +48,81 @@ io.sockets.on('connection', function (socket){
 		socket.broadcast.emit('message', message);
 	});
 
+    // when a socket creates or joins a given room
 	socket.on('create or join', function (room) {
         log('Request to create or join room ' + room);
 
+        // # clients in a given room
 		var numClients = io.sockets.clients(room).length;
 		log('Room ' + room + ' has ' + numClients + ' client(s)');
 
+        // create a new room object if it doesn't exist
         rtc[room] = rtc[room] || [];
+
+        // the socket ids within each room
         var connectionIds = [];
 
+        // for each client (e.g., socket id) within a room
         for (var i = 0; i < rtc[room].length; i++) {
+            
+            // store the socket id into "id"
             var id = rtc[room][i];
+
+            // if the id we're looking 
+            // at != the socket that's being connected
             if (id != socket.id) {
-                // build a list of peers we want to connect this node to
+
+                // build a list of peers we want to connect this socket to
                 connectionIds.push(id)
-                // code //
+
                 var sock;
+                // for each open socket...
                 for (var j = 0; j < allClients.length; j++) {
+                    // store an open socket into "sock"
                     sock = allClients[j];
+                    // finds the socket associated with the id 
                     if (id === sock.id) {
                         break;
                     }
                 }
+                // check to make sure the socket isn't undefined
                 if (sock) {
+                    // let everyone know about the join
                     sock.emit("new_peer", socket.id);
-                    // sock.send(JSON.stringify({
-                    //     "eventName": "new_peer",
-                    //     "data": {
-                    //         "socketId": socket.id
-                    //     }
-                    // // }), function(error) {
-                    //       if (error) {
-                    //         console.log(error);
-                    //       }
-                    // });
+
+                    log("count")
                 }
             }
         }
 
         // send new peer a list of all prior peers
         socket.emit("get_peers", connectionIds, socket.id);
-        // socket.send(JSON.stringify({
-        //     "eventName": "get_peers",
-        //     "data": {
-        //         "connections": connectionIds,
-        //         "you": socket.id
-        //     }
-        // }), function(error) {
-        //     if (error) {
-        //         console.log(error);
-        //     }
-        // });
 
+        // if the number of clients in the room is 0
 		if (numClients === 0){
+            // join the room
 			socket.join(room);
+            // let everyone know that a room was created by a given id
 			socket.emit('created', room, socket.id);
-
-		} else  {
+		// if the room has already been created
+        } else  {
+            // join the room
 			socket.join(room);
+            // let everyone know that a room was joined by a given id
             socket.emit('joined', room, socket.id);
+            // emit a ready message 
             io.sockets.in(room).emit('ready');
 
 		}
-        // push each socket id into it's respective room
+
+        // push each socket id into it's respective room.
+        // used for opening data channels
         rtc[room].push(socket.id)
 	});
 
+    // when a socket disconnects from the server
     socket.on('disconnect', function() {
+        
         // find socket to remove
         var i = allClients.indexOf(socket);
         // remove socket
