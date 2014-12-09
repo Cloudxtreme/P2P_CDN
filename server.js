@@ -33,11 +33,11 @@ var allClients = [];
 
 // when a socket connects to the server
 io.sockets.on('connection', function (socket){
-    // stats.meter('requestsPerSecond').mark();
-    // setInterval(function() {
-    //     console.log(stats.toJSON());
-    // }, 1000);
-    var stopwatch = timer.start();
+    stats.meter('requestsPerSecond').mark();
+    setInterval(function() {
+        console.log(stats.toJSON());
+    }, 1000);
+    // var stopwatch = timer.start();
     
     // push the connected sockets into allClients array
     allClients.push(socket);
