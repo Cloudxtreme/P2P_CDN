@@ -141,6 +141,12 @@ if (location.hostname.match(/localhost|127\.0\.0/)) {
     socket.emit('ipaddr');
 }
 
+// if browser doesn't support webrtc, just pull from the server
+if (!webrtcDetectedBrowser) {
+    isInitiator = true;
+    loadRes();
+}
+
 // check whether data channel is supported.
 function checkSupport() {
     try {
@@ -153,13 +159,14 @@ function checkSupport() {
         return false;
     }
 };
-
 function loadRes() {
     if (isInitiator) {
         if (!elementHasBeenDownloaded) {
             $("#ht").attr("src", "/math.jpg");
-            console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
-            socket.emit('downloaded', room);
+            console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER");
+            if (webrtcDetectedBrowser) {
+                socket.emit('downloaded', room);
+            }
             elementHasBeenDownloaded = true
             $("#send_medium")[0].innerHTML = "server";
             $("#ht").load(function() {

@@ -151,7 +151,6 @@ if (navigator.mozGetUserMedia) {
   }
 } else {
   // if the browser doesn't support WebRTC, we need to only hit the server
-  
   console.log("Browser does not appear to be WebRTC-capable");
 }
 
