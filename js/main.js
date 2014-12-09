@@ -85,8 +85,9 @@ socket.on('joined', function (room, clientId) {
   console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
   my_id = clientId;
   isInitiator = false;
-  if (!checkSupport())
-    loadRes();
+  if (!checkSupport()) {
+      loadRes();
+  }
 });
 
 socket.on('ready', function () {
@@ -298,6 +299,7 @@ function onDataChannelCreated(channel, id) {
 
     channel.onerror = function (e) {
         console.log('CHANNEL error!', e);
+        loadRes();
     };
 
     channel.onclose = function() {
