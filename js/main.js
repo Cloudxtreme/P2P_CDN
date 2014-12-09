@@ -265,11 +265,13 @@ function createPeerConnection(isInitiator, config, id) {
         }
     };
 
+    console.info(isInitiator, id);
+
     if (isInitiator) {
         console.log('Creating Data Channel');
         dataChannel = peerConn.createDataChannel("photos", {reliable: false});
-        onDataChannelCreated(dataChannel, id);
         dataChannels[id] = dataChannel
+        onDataChannelCreated(dataChannel, id);
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
     } else {
