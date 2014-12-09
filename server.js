@@ -5,6 +5,7 @@ var app = express();
 var server = http.createServer(app);
 var os = require('os');
 var io = require('socket.io').listen(server);
+var stats = require('measured').createCollection();
 
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
@@ -15,6 +16,11 @@ var file = new(static.Server)();
 app.get('/', function(request, response) {
   file.serve(request, response);
 })
+
+stats.meter('requestsPerSecond').mark();
+setInterval(function() {
+    console.log(stats.toJSON());
+}, 1000);
 
 // server-side object to store
 // information about our clients.
