@@ -460,5 +460,6 @@ function randomToken() {
 }
 
 function logError(err) {
+    alert("error, bitch");
     console.log(err.toString(), err);
 }
