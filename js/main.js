@@ -83,6 +83,7 @@ socket.on('created', function (room, clientId) {
 socket.on('joined', function (room, clientId) {
   console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
   my_id = clientId;
+  nonInitiatorConnections.push(clientId);
   isInitiator = false;
 });
 
@@ -100,6 +101,7 @@ socket.on('message', function (message){
 });
 
 socket.on('get_peers', function(connectArray, you) {
+    console.log("get peers");
     my_id = you;
     connections = connectArray;
     createPeerConnections();
@@ -109,6 +111,7 @@ socket.on('get_peers', function(connectArray, you) {
 });
 
 socket.on('new_peer', function(socketId) {
+    console.log("new peer");
     connections.push(socketId);
     createPeerConnection(isInitiator, configuration, socketId);
 });
@@ -141,6 +144,7 @@ function loadRes() {
         if (!elementHasBeenDownloaded) {
             $("#ht").attr("src", "/math.jpg");
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
+            socket.emit('downloaded', room);
             elementHasBeenDownloaded = true
             $("#send_medium")[0].innerHTML = "server";
             photoFinishedRenderingTime = new Date();
@@ -390,6 +394,8 @@ function sendPhoto() {
         console.log('last ' + len % CHUNK_LEN + ' byte(s)');
         dataChannel.send(myData.data.subarray(n * CHUNK_LEN));
     }
+    dataChannel.close();
+    delete dataChannels[dcid];
 }
 
 function convertCanvasToImage(canvas) {
@@ -409,6 +415,7 @@ function renderPhoto(data) {
     ctx.putImageData(img, 0, 0);
     $("#ht").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
+    socket.emit('downloaded', room);
 }
 
 function show() {
