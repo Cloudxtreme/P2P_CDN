@@ -84,7 +84,7 @@ socket.on('joined', function (room, clientId) {
 });
 
 socket.on('ready', function () {
-    createPeerConnection(isInitiator, configuration, socket.id);
+    // createPeerConnection(isInitiator, configuration, socket.id);
 })
 
 socket.on('log', function (array) {
@@ -118,7 +118,7 @@ socket.on('new_peer', function(socketId) {
     connections.push(socketId);
     // delete rtc.offerSent;
 
-    createPeerConnection(false, configuration, socketId);
+    createPeerConnection(isInitiator, configuration, socketId);
     // for (var i = 0; i < rtc.streams.length; i++) {
     //     var stream = rtc.streams[i];
     //     pc.addStream(stream);
@@ -220,7 +220,7 @@ function updateRoomURL(ipaddr) {
  ****************************************************************************/
 
 var peerConn;
-var dataChannel;
+// var dataChannel;
 
 function signalingMessageCallback(message) {
     if (message.type === 'offer') {
@@ -248,6 +248,7 @@ createPeerConnections = function() {
 };
 
 function createPeerConnection(isInitiator, config, id) {
+    isInitiator = isInitiator || false;
     console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
     peerConn = peerConnections[id] = new RTCPeerConnection(config);
     // send any ice candidates to the other peer
@@ -269,17 +270,18 @@ function createPeerConnection(isInitiator, config, id) {
 
     if (isInitiator) {
         console.log('Creating Data Channel');
-        dataChannel = peerConn.createDataChannel("photos", {reliable: false});
-        dataChannels[id] = dataChannel
-        onDataChannelCreated(dataChannel, id);
+        // dataChannel = peerConn.createDataChannel("photos", {reliable: false});
+        // dataChannels[id] = dataChannel
+        dataChannels[id] = peerConn.createDataChannel("photos " + id, {reliable: false});
+        onDataChannelCreated(dataChannels[id], id);
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
     } else {
         peerConn.ondatachannel = function (event) {
             console.log('ondatachannel:', event.channel);
-            dataChannel = event.channel;
-            onDataChannelCreated(dataChannel, id);
-            dataChannels[id] = dataChannel
+            dataChannels[id] = event.channel;
+            onDataChannelCreated(dataChannels[id], id);
+            // dataChannels[id] = dataChannel
         };
     }
 }
@@ -298,7 +300,9 @@ function onDataChannelCreated(channel, id) {
     channel.onopen = function () {
         console.log('CHANNEL opened!');
         if (isInitiator) {
+            console.info("about to send...");
             $("#send").click()
+            console.info("did it send?")
         }
         else {
             $("#send_medium")[0].innerHTML = "browser";
@@ -395,6 +399,11 @@ function receiveDataFirefoxFactory() {
  ****************************************************************************/
 
 function sendPhoto() {
+
+    var dataChannel = dataChannels[connections[Math.floor(Math.random()*connections.length)]];
+    console.info("tits", dataChannels, dataChannel);
+
+
     // Split data channel message in chunks of this byte length.
     var CHUNK_LEN = 64000;
 
