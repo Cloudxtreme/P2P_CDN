@@ -51,6 +51,7 @@ var nonInitiatorConnections = [];
 
 // Reference to the data channels
 var dataChannels = {};
+var currentDataChannel;
 
 var photoBeganRenderingTime = new Date();
 var photoFinishedRenderingTime;
@@ -360,6 +361,8 @@ function sendPhoto() {
     var dataChannel = dataChannels[dcid];
     console.info("I have chosen dataChannel ", dataChannel, " with id ", dcid);
 
+    console.error(dcid);
+    currentDataChannel = dcid;
 
     // Split data channel message in chunks of this byte length.
     var CHUNK_LEN = 64000;
@@ -394,8 +397,9 @@ function sendPhoto() {
         console.log('last ' + len % CHUNK_LEN + ' byte(s)');
         dataChannel.send(myData.data.subarray(n * CHUNK_LEN));
     }
-    dataChannel.close();
-    delete dataChannels[dcid];
+    // dataChannel.close();
+    // delete dataChannels[dcid];
+    console.error(dataChannels, dataChannel);
 }
 
 function convertCanvasToImage(canvas) {
@@ -416,6 +420,10 @@ function renderPhoto(data) {
     $("#ht").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
     socket.emit('downloaded', room);
+
+    // console.error(dataChannels, currentDataChannel);
+    dataChannels[Object.keys(dataChannels)[0]].close();
+    delete dataChannels[Object.keys(dataChannels)[0]];
 }
 
 function show() {
