@@ -87,14 +87,14 @@ io.sockets.on('connection', function (socket){
 		log('Room ' + room + ' has ' + numClients + ' client(s)');
 
         // create a new room object if it doesn't exist
-        rtc[room] = rtc[room] || {"total": [], "intitators": [], "notintitators": []};
+        rtc[room] = rtc[room] || {"total": [], "initiators": [], "notinitiators": []};
 
         // the socket ids within each room
         var connectionIds = [];
 
         // for each client (e.g., socket id) within a room
-        // for (var i = 0; i < rtc[room].intitators.length; i++) {
-        if (rtc[room].intitators.length) {
+        // for (var i = 0; i < rtc[room].initiators.length; i++) {
+        if (rtc[room].initiators.length) {
             
         //     // store the socket id into "id"
         //     var id = rtc[room].total[i];
@@ -108,7 +108,7 @@ io.sockets.on('connection', function (socket){
 
                 var id = socket.id;
                 while (id === socket.id)
-                    id = rtc[room].intitators[Math.floor(Math.random()*rtc[room].intitators.length)];
+                    id = rtc[room].initiators[Math.floor(Math.random()*rtc[room].initiators.length)];
                 connectionIds.push(id);
                 var sock;
                 // for each open socket...
@@ -151,14 +151,14 @@ io.sockets.on('connection', function (socket){
         // push each socket id into it's respective room.
         // used for opening data channels
         rtc[room].total.push(socket.id)
-        rtc[room].notintitators.push(socket.id)
+        rtc[room].notinitiators.push(socket.id)
         log('Look at my rtc, my rtc is amazing ' + JSON.stringify(rtc));
 	});
 
     socket.on('downloaded', function (room) {
         log('Socket', socket.id, "in room", room, "has finished downloading");
-        rtc[room].intitators.push(socket.id);
-        rtc[room].notintitators.splice(rtc[room].notintitators.indexOf(socket.id));
+        rtc[room].initiators.push(socket.id);
+        rtc[room].notinitiators.splice(rtc[room].notinitiators.indexOf(socket.id));
         log('Look at my rtc, my rtc is amazing ' + JSON.stringify(rtc));
     });
 
@@ -182,13 +182,13 @@ io.sockets.on('connection', function (socket){
             // -1 if socket id doesn't exist in the room
             // not -1 otherwise
             var exist_total = room.total.indexOf(socket.id);
-            var exist_init = room.intitators.indexOf(socket.id);
+            var exist_init = room.initiators.indexOf(socket.id);
             // if the socket id exists in a list...
             if (exist_total !== -1 || exist_init !== -1) {
                 if (exist_total !== -1)
                     disconnect(socket.id, room.total);
                 if (exist_init !== -1)
-                    disconnect(socket.id, room.intitators);
+                    disconnect(socket.id, room.initiators);
                 break;
             }
         }

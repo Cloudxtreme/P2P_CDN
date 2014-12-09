@@ -358,7 +358,7 @@ function receiveDataFirefoxFactory() {
 
 function sendPhoto() {
     var dcid = connections[Math.floor(Math.random()*connections.length)];
-    var dataChannel = dataChannels[dcid];
+    var dataChannel = dataChannels[Object.keys(dataChannels)[0]];
     console.info("I have chosen dataChannel ", dataChannel, " with id ", dcid);
 
     console.error(dcid);
@@ -424,6 +424,7 @@ function renderPhoto(data) {
     // console.error(dataChannels, currentDataChannel);
     dataChannels[Object.keys(dataChannels)[0]].close();
     delete dataChannels[Object.keys(dataChannels)[0]];
+    peerConn.close();
 }
 
 function show() {
