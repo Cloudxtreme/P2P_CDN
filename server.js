@@ -5,7 +5,8 @@ var app = express();
 var server = http.createServer(app);
 var os = require('os');
 var io = require('socket.io').listen(server);
-var stats = require('measured').createCollection();
+var stats = require('measured');
+var timer = new stats.Timer();
 
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
@@ -32,10 +33,11 @@ var allClients = [];
 
 // when a socket connects to the server
 io.sockets.on('connection', function (socket){
-    stats.meter('requestsPerSecond').mark();
-    setInterval(function() {
-        console.log(stats.toJSON());
-    }, 1000);
+    // stats.meter('requestsPerSecond').mark();
+    // setInterval(function() {
+    //     console.log(stats.toJSON());
+    // }, 1000);
+    var stopwatch = timer.start();
     
     // push the connected sockets into allClients array
     allClients.push(socket);

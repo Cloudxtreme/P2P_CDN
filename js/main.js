@@ -84,8 +84,9 @@ socket.on('created', function (room, clientId) {
 socket.on('joined', function (room, clientId) {
   console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
   my_id = clientId;
-  nonInitiatorConnections.push(clientId);
   isInitiator = false;
+  if (!checkSupport())
+    loadRes();
 });
 
 socket.on('ready', function () {
@@ -139,6 +140,19 @@ socket.emit('create or join', room);
 if (location.hostname.match(/localhost|127\.0\.0/)) {
     socket.emit('ipaddr');
 }
+
+// check whether data channel is supported.
+function checkSupport() {
+    try {
+        // raises exception if createDataChannel is not supported
+        var pc = new RTCPeerConnection(config);
+        var channel = pc.createDataChannel('test', {reliable: false});
+        channel.close();
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
 
 function loadRes() {
     if (isInitiator) {
