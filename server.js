@@ -125,40 +125,59 @@ io.sockets.on('connection', function (socket){
         
         // find socket to remove
         var i = allClients.indexOf(socket);
-        // remove socket
+
+        // remove socket from the open sockets array
         allClients.splice(i, 1);
 
-        // remove from rooms and send remove_peer_connected to all sockets in room
         var room;
+        // remove the socket id from each room
         for (var key in rtc) {
-
+            
+            // each room (as represented by the token)
             room = rtc[key];
+
+            // -1 if socket id doesn't exist in the room
+            // not -1 otherwise
             var exist = room.indexOf(socket.id);
 
+            // if the socket id exists in a room...
             if (exist !== -1) {
+
+                // remove the socket id from the socket array in the room
                 room.splice(room.indexOf(socket.id), 1);
+
+                // for each socket id in the room
                 for (var j = 0; j < room.length; j++) {
+
+                    // log the socket id
                     console.log(room[j]);
+
                     var sock;
+
+                    // for each open socket
                     for (var k = 0; k < allClients.length; k++) {
+                        
+                        // store an open socket into "sock"
                         sock = allClients[k];
+
+                        // finds the socket associated with the id
                         if (room[j] === sock.id) {
                             break;
                         }
                     }
+
+                    // check to make sure the socket isn't undefined
                     if (sock) {
+                        // let everyone know about the disconnect
                         sock.emit("remove_peer", socket.id);
                     }
                 }
                 break;
             }
         }
-        console.info("Server side Clean!!");
-      // // we are leaved the room so lets notify about that
-      // rtc.fire('room_leave', room, socket.id);
-      
-      // // call the disconnect callback
-      // rtc.fire('disconnect', rtc);
+
+        // we've successfully closed the socket
+        console.info("Server side clean!");
 
     });
 
