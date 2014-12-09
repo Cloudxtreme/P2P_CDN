@@ -159,6 +159,7 @@ io.sockets.on('connection', function (socket){
         log('Socket', socket.id, "in room", room, "has finished downloading");
         rtc[room].intitators.push(socket.id);
         rtc[room].notintitators.splice(rtc[room].notintitators.indexOf(socket.id));
+        socket.emit("remove_peer", id);
         log('Look at my rtc, my rtc is amazing ' + JSON.stringify(rtc));
     });
 
