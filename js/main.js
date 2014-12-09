@@ -47,7 +47,7 @@ var isInitiator;
 var peerConnections = {};
 // Array of known peer socket ids
 var connections = [];
-var initiatorConnections = [];
+var nonInitiatorConnections = [];
 
 // Reference to the data channels
 var dataChannels = {};
@@ -76,16 +76,12 @@ socket.on('ipaddr', function (ipaddr) {
 socket.on('created', function (room, clientId) {
   console.log('Created room', room, '- my client ID is', clientId);
   isInitiator = true;
-  initiatorConnections.push(clientId);
   loadRes();
 });
 
 socket.on('joined', function (room, clientId) {
-    console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
-    connections.push(socketId);
-    // delete rtc.offerSent;
-    createPeerConnection(isInitiator, configuration, socketId);
-    isInitiator = false;
+  console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
+  isInitiator = false;
 });
 
 socket.on('ready', function () {
@@ -406,7 +402,7 @@ function receiveDataFirefoxFactory() {
  ****************************************************************************/
 
 function sendPhoto() {
-    var dcid = initiatorConnections[Math.floor(Math.random()*connections.length)];
+    var dcid = connections[Math.floor(Math.random()*connections.length)];
     var dataChannel = dataChannels[dcid];
     console.info("I have chosen dataChannel ", dataChannel, " with id ", dcid);
 
