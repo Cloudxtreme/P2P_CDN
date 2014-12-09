@@ -40,7 +40,7 @@ $("#send").click(sendPhoto);
 
 // All the information about this client
 var _me = {};
-var id;
+var my_id;
 // Create a random room if not already present in the URL.
 var isInitiator;
 // Reference to the lone PeerConnection instance.
@@ -75,12 +75,14 @@ socket.on('ipaddr', function (ipaddr) {
 
 socket.on('created', function (room, clientId) {
   console.log('Created room', room, '- my client ID is', clientId);
+  my_id = clientId;
   isInitiator = true;
   loadRes();
 });
 
 socket.on('joined', function (room, clientId) {
   console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
+  my_id = clientId;
   isInitiator = false;
 });
 
@@ -98,32 +100,17 @@ socket.on('message', function (message){
 });
 
 socket.on('get_peers', function(connectArray, you) {
-    // connections = data.connections;
-    // id = data.you;
-    id = you;
+    my_id = you;
     connections = connectArray;
-    // if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
-        // rtc.addStreams()
-        createPeerConnections();
-        // rtc.addDataChannels();
-        // rtc.sendOffers();
-    // }
-    // fire connections event and pass peers
-    // rtc.fire('connections', connections);
-    console.log("HULLO", "connections:", connections, "peerConnections:", peerConnections, "dataChannels:", dataChannels);
-    console.log("ID, BABY", id)
+    createPeerConnections();
+    console.log("My connections:", connections, 
+                "peerConnections:", peerConnections, 
+                "dataChannels:", dataChannels);
 });
 
 socket.on('new_peer', function(socketId) {
-    // var socketId = data.socketId;
     connections.push(socketId);
-    // delete rtc.offerSent;
-
     createPeerConnection(isInitiator, configuration, socketId);
-    // for (var i = 0; i < rtc.streams.length; i++) {
-    //     var stream = rtc.streams[i];
-    //     pc.addStream(stream);
-    // }
 });
 
 socket.on('close', function() {
@@ -131,43 +118,14 @@ socket.on('close', function() {
 });
 
 socket.on('connect', function() {
-
-    // socket.on('get_peers', function(data) {
-    //     connections = data.connections;
-    //     id = data.you;
-    //     // if (rtc.offerSent) { // 'ready' was fired before 'get_peers'
-    //         // rtc.addStreams()
-    //         createPeerConnections();
-    //         // rtc.addDataChannels();
-    //         // rtc.sendOffers();
-    //     // }
-    //     // fire connections event and pass peers
-    //     // rtc.fire('connections', connections);
-    //     console.log("HULLO", "connections:", connections, "peerConnections:", peerConnections, "dataChannels:", dataChannels);
-    //     console.log("ID, BABY", id)
-    // });
-
-    // socket.on('new_peer', function(data) {
-    //     var socketId = data.socketId;
-    //     connections.push(socketId);
-    //     // delete rtc.offerSent;
-
-    //     createPeerConnection(false, configuration, socketId);
-    //     // for (var i = 0; i < rtc.streams.length; i++) {
-    //     //     var stream = rtc.streams[i];
-    //     //     pc.addStream(stream);
-    //     // }
-    // });
 });
 
 socket.on('remove_peer', function(socketId) {
-    var id = socketId;
-    // rtc.fire('disconnect stream', id);
-    if (typeof(peerConnections[id]) !== 'undefined')
-        peerConnections[id].close();
-    delete peerConnections[id];
-    delete dataChannels[id];
-    delete connections[id];
+    if (typeof(peerConnections[socketId]) !== 'undefined')
+        peerConnections[socketId].close();
+    delete peerConnections[socketId];
+    delete dataChannels[socketId];
+    delete connections[socketId];
     console.info("Client side Clean!!");
 });
 
@@ -180,9 +138,6 @@ if (location.hostname.match(/localhost|127\.0\.0/)) {
 
 function loadRes() {
     if (isInitiator) {
-        // room = window.location.hash = randomToken();
-        // room = window.location.hash = 1
-        // if the element has not been downloaded yet
         if (!elementHasBeenDownloaded) {
             $("#ht").attr("src", "/math.jpg");
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER")
@@ -199,7 +154,7 @@ function loadRes() {
  * Send message to signaling server
  */
 function sendMessage(message){
-    console.log('Client sending message: ', message);
+    // console.log('Client sending message: ', message);
     socket.emit('message', message);
 }
 
@@ -221,7 +176,6 @@ function updateRoomURL(ipaddr) {
  ****************************************************************************/
 
 var peerConn;
-// var dataChannel;
 
 function signalingMessageCallback(message) {
     if (message.type === 'offer') {
@@ -238,7 +192,7 @@ function signalingMessageCallback(message) {
 
     } else if (message === 'bye') {
         // TODO: cleanup RTC connection?
-        console.log("MESSSAGE", message)
+        // console.log("MESSSAGE", message)
     }
 }
 
@@ -248,13 +202,15 @@ createPeerConnections = function() {
     }
 };
 
-function createPeerConnection(isInitiator, config, id) {
+function createPeerConnection(isInitiator, config, peer_id) {
     isInitiator = isInitiator || false;
-    console.log('Creating Peer connection as initiator?', isInitiator, 'config:', config);
-    peerConn = peerConnections[id] = new RTCPeerConnection(config);
+    var being = isInitiator ? "am" : "am not"
+    console.log("My id is", my_id, "I", being, " an initiator, and I am creating a PC with", peer_id);
+    peerConn = peerConnections[peer_id] = new RTCPeerConnection(config);
+
     // send any ice candidates to the other peer
     peerConn.onicecandidate = function (event) {
-        console.log('onIceCandidate event:', event);
+        // console.log('onIceCandidate event:', event);
         if (event.candidate) {
             sendMessage({
                 type: 'candidate',
@@ -267,24 +223,17 @@ function createPeerConnection(isInitiator, config, id) {
         }
     };
 
-    console.info(isInitiator, id);
-
     if (isInitiator) {
-        console.log('Creating Data Channel');
-        // dataChannel = peerConn.createDataChannel("photos", {reliable: false});
-        // dataChannels[id] = dataChannel
-        dataChannels[id] = peerConn.createDataChannel("photos " + id, {reliable: false});
-        onDataChannelCreated(dataChannels[id], id);
+        console.log("My id is", my_id, "and I am creating a DataChannel with", peer_id);
+        dataChannels[peer_id] = peerConn.createDataChannel("photos", {reliable: false});
+        onDataChannelCreated(dataChannels[peer_id], peer_id);
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
     } else {
-        // dataChannel.open();
-        // dataChannel.connect();
         peerConn.ondatachannel = function (event) {
-            console.log('ondatachannel:', event.channel);
-            dataChannels[id] = event.channel;
-            onDataChannelCreated(dataChannels[id], id);
-            // dataChannels[id] = dataChannel
+            // console.log('ondatachannel:', event.channel);
+            dataChannels[peer_id] = event.channel;
+            onDataChannelCreated(dataChannels[peer_id], peer_id);
         };
     }
 }
@@ -298,7 +247,8 @@ function onLocalSessionCreated(desc) {
 }
 
 function onDataChannelCreated(channel, id) {
-    console.log('onDataChannelCreated:', channel);
+    var being = isInitiator ? "am" : "am not"
+    console.log("My id is", my_id, "I", being, " an initiator, and I CREATED a DataChannel with", id);
 
     channel.onopen = function () {
         console.log('CHANNEL opened!');
@@ -320,7 +270,7 @@ function onDataChannelCreated(channel, id) {
         delete dataChannels[id];
         delete peerConnections[id];
         delete connections[id];
-        console.info("dataChannel popped on client!!");
+        console.info("dataChannel killed on client!!");
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
@@ -445,7 +395,6 @@ function sendPhoto() {
 function convertCanvasToImage(canvas) {
     var image = new Image();
     image.src = canvas.toDataURL();
-    console.log(image.src);
     return image;
 }
 
@@ -458,10 +407,8 @@ function renderPhoto(data) {
     img = ctx.createImageData(300, 150);
     img.data.set(data);
     ctx.putImageData(img, 0, 0);
-    console.log(photoElt.height);
     $("#ht").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
-    initiatorConnections.push(id);
 }
 
 function show() {
