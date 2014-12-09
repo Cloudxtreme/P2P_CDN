@@ -141,8 +141,12 @@ if (location.hostname.match(/localhost|127\.0\.0/)) {
     socket.emit('ipaddr');
 }
 
+// opera uses the chrome rendering engine, so we need to
+// determine this manually
+isOperaBrowser = (navigator.userAgent.match(/Opera|OPR\//) ? true : false);
+
 // if browser doesn't support webrtc, just pull from the server
-if (!webrtcDetectedBrowser) {
+if (!webrtcDetectedBrowser || isOperaBrowser) {
     isInitiator = true;
     loadRes();
 }
@@ -164,7 +168,9 @@ function loadRes() {
         if (!elementHasBeenDownloaded) {
             $("#ht").attr("src", "/math.jpg");
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER");
-            if (webrtcDetectedBrowser) {
+            // if our browser supports data channels, then we
+            // allow others to download from us
+            if (webrtcDetectedBrowser && !isOperaBrowser) {
                 socket.emit('downloaded', room);
             }
             elementHasBeenDownloaded = true
