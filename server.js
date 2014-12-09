@@ -89,8 +89,6 @@ io.sockets.on('connection', function (socket){
                 if (sock) {
                     // let everyone know about the join
                     sock.emit("new_peer", socket.id);
-
-                    log("count")
                 }
             }
         }
