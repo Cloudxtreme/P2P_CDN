@@ -16,6 +16,13 @@
         <p class="center">This element was sent via: <strong><span id="send_medium"></span></strong></p>
         <button id="send" class="send" style="display:none">send</button>
         <p class="center">This asset took <strong><span id="time_to_load"></span></strong> ms.</p>
+
+        <div class="center" id="report" style="float:left">
+            <div id="latency_values">
+                <h4 class="center" id="avg_report" style="display:none">Average browser-based latency for <span id="num_connections"></span> connection(s): <span id="avg_latency"></span> ms</h4>
+            </div>
+        </div>
+
         <path d="M0,0L1,6L2,4"></path>
 
         <script src="/socket.io/socket.io.js"></script>

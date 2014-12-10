@@ -91,9 +91,23 @@ socket.on('rendered', function (time) {
     //update graph
 });
 
+
+function avg_array(arr) {
+    var sum = 0
+    for( var i = 0; i < arr.length; i++) {
+        sum += arr[i];
+    }
+    return sum / arr.length;
+}
+
 socket.on('update_graph', function (time) {
     connData.push(time);
     updateGraph(connData);
+    $("#latency_report").css({"display":"block"});
+    $("#latency_values").append("<p class='center left'>C" + connData.length + " : " +  time + "ms      |      </p>");
+    $("#avg_report").css({"display":"block"});
+    $("#num_connections")[0].innerHTML = connData.length;
+    $("#avg_latency")[0].innerHTML = avg_array(connData);
 });
 
 socket.on('joined', function (room, clientId) {
@@ -246,6 +260,24 @@ function updateGraph(dataset) {
         .attr("class", "axis")
         .attr("transform", "translate(" + padding + ", 0)")
         .call(yAxis);
+
+    svg.selectAll("text")
+               .data(dataset)
+               .enter()
+               .append("text")
+               .text(function(d) {
+                    return d;
+               })
+               .attr("text-anchor", "middle")
+               .attr("x", function(d, i) {
+                    return i * (w / dataset.length);
+               })
+               .attr("y", function(d) {
+                    return h - (d * 4);
+               })
+               .attr("font-family", "sans-serif")
+               .attr("font-size", "11px")
+               .attr("fill", "black");
 }
 
 // check whether data channel is supported.

@@ -75,6 +75,11 @@
     margin-bottom: 25px;
 }
 
+.left {
+    float: left;
+    margin-right: 10px;
+}
 
-
-
+.report {
+    width: 700px;
+}

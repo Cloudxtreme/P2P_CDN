@@ -187,8 +187,9 @@ io.sockets.on('connection', function (socket){
             // -1 if socket id doesn't exist in the room (not -1 otherwise)
             var exist_total = room.total.indexOf(socket.id);
             var exist_init = room.initiators.indexOf(socket.id);
-            // if the socket id exists in one of the lists list...
+            // if the socket id exists in one of the lists...
             if (exist_total !== -1 || exist_init !== -1) {
+
                 if (exist_total !== -1) {
                     disconnect(socket.id, room.total);
                 }
