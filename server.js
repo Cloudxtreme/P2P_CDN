@@ -6,8 +6,8 @@ var server = http.createServer(app);
 var os = require('os');
 var io = require('socket.io').listen(server);
 var stats = require('measured').createCollection();
-// var d3 = require("d3");
 
+// boilerplate express setup
 app.set('port', (process.env.PORT || 5000))
 app.use(express.static(__dirname + '/public'))
 app.use('/css', express.static(__dirname + '/css'))
@@ -18,9 +18,8 @@ app.get('/', function(request, response) {
   file.serve(request, response);
 })
 
-// server-side object to store
-// information about our clients.
-// used for signaling
+// server-side object to store information about our clients. 
+// used for signaling (e.g., to pick nodes to connect to each other)
 var rtc = {};
 
 // make the server listen at some port
@@ -33,10 +32,6 @@ var allClients = [];
 
 // when a socket connects to the server
 io.sockets.on('connection', function (socket){
-    // stats.meter('requestsPerSecond').mark();
-    // setInterval(function() {
-    //     console.log(stats.toJSON());
-    // }, 1000);
     
     // push the connected sockets into allClients array
     allClients.push(socket);
@@ -80,9 +75,10 @@ io.sockets.on('connection', function (socket){
         }
     }
 
+    // on receiving a message, broadcast it to every socket
 	socket.on('message', function (message) {
+        // log the message on the console
 		log('Client said:', message);
-        // for a real app, would be room only (not broadcast)
 		socket.broadcast.emit('message', message);
 	});
 
@@ -93,46 +89,39 @@ io.sockets.on('connection', function (socket){
 		log('Room ' + room + ' has ' + numClients + ' client(s)');
 
         // create a new room object if it doesn't exist
-        rtc[room] = rtc[room] || {"total": [], "initiators": [], "notinitiators": []};
+        rtc[room] = rtc[room] || {"total": [], "initiators": []};
 
         // the socket ids within each room
         var connectionIds = [];
 
-        // for each client (e.g., socket id) within a room
-        // for (var i = 0; i < rtc[room].initiators.length; i++) {
         if (rtc[room].initiators.length) {
-            
-        //     // store the socket id into "id"
-        //     var id = rtc[room].total[i];
+            // store the socket id in "id"
+            var id = socket.id;
 
-        //     // if the id we're looking 
-        //     // at != the socket that's being connected
-        //     if (id != socket.id) {
-
-        //         // build a list of peers we want to connect this socket to
-        //         connectionIds.push(id)
-
-                var id = socket.id;
-                while (id === socket.id)
-                    id = rtc[room].initiators[Math.floor(Math.random()*rtc[room].initiators.length)];
-                connectionIds.push(id);
-                var sock;
-                // for each open socket...
-                for (var j = 0; j < allClients.length; j++) {
-                    // store an open socket into "sock"
-                    sock = allClients[j];
-                    // finds the socket associated with the id 
-                    if (id === sock.id) {
-                        break;
-                    }
-                }
-                // check to make sure the socket isn't undefined
-                if (sock) {
-                    // let everyone know about the join
-                    sock.emit("new_peer", socket.id);
+            // while our id = the socket that's connecting
+            while (id === socket.id) {
+                // set the id to a random initiator so that we can download content
+                randomId = Math.floor(Math.random()*rtc[room].initiators.length)
+                id = rtc[room].initiators[randomId];
+            }
+            // push the id into the array of connections to instantiate
+            connectionIds.push(id);
+            var sock;
+            // for each open socket...
+            for (var j = 0; j < allClients.length; j++) {
+                // store an open socket into "sock"
+                sock = allClients[j];
+                // finds the socket associated with the id 
+                if (id === sock.id) {
+                    break;
                 }
             }
-        // }
+            // check to make sure the socket isn't undefined
+            if (sock) {
+                // let everyone know about the join
+                sock.emit("new_peer", socket.id);
+            }
+        }
 
         // send new peer a list of all prior peers
         socket.emit("get_peers", connectionIds, socket.id);
@@ -157,18 +146,24 @@ io.sockets.on('connection', function (socket){
         // push each socket id into it's respective room.
         // used for opening data channels
         rtc[room].total.push(socket.id)
-        rtc[room].notinitiators.push(socket.id)
-        log('Look at my rtc, my rtc is amazing ' + JSON.stringify(rtc));
+        log("Our current RTC object: " + JSON.stringify(rtc));
 	});
 
+    // when a socket downloads content from another browser
     socket.on('downloaded', function (room) {
+        // log the id and room
         log('Socket', socket.id, "in room", room, "has finished downloading");
+
+        // this socket is now an initiator and can contribute content
         rtc[room].initiators.push(socket.id);
-        rtc[room].notinitiators.splice(rtc[room].notinitiators.indexOf(socket.id));
-        log('Look at my rtc, my rtc is amazing ' + JSON.stringify(rtc));
+
+        // log our RTC object for debugging purposes
+        log("Our current RTC object: " + JSON.stringify(rtc));
     });
 
+    // when we receive bytes through a data channel
     socket.on('bytes_received', function (room, time) {
+        // tell everyone to update their time accordingly
         socket.broadcast.emit('update_graph', time)
     });
 
@@ -188,17 +183,18 @@ io.sockets.on('connection', function (socket){
             // each room (as represented by the token)
             room = rtc[key];
 
-            // Disconnect from both lists
-            // -1 if socket id doesn't exist in the room
-            // not -1 otherwise
+            // Disconnect from both lists (total and initiators)
+            // -1 if socket id doesn't exist in the room (not -1 otherwise)
             var exist_total = room.total.indexOf(socket.id);
             var exist_init = room.initiators.indexOf(socket.id);
-            // if the socket id exists in a list...
+            // if the socket id exists in one of the lists list...
             if (exist_total !== -1 || exist_init !== -1) {
-                if (exist_total !== -1)
+                if (exist_total !== -1) {
                     disconnect(socket.id, room.total);
-                if (exist_init !== -1)
+                }
+                if (exist_init !== -1) {
                     disconnect(socket.id, room.initiators);
+                }
                 break;
             }
         }
