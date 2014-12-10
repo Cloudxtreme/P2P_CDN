@@ -8,7 +8,6 @@
 ### Dependencies:
 * Node.js
 
-
 In this readme, we break the code into two sections, one to
 describe the front-end implementation and one to describe
 the back-end.
