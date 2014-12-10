@@ -33,10 +33,10 @@ var allClients = [];
 
 // when a socket connects to the server
 io.sockets.on('connection', function (socket){
-    stats.meter('requestsPerSecond').mark();
-    setInterval(function() {
-        console.log(stats.toJSON());
-    }, 1000);
+    // stats.meter('requestsPerSecond').mark();
+    // setInterval(function() {
+    //     console.log(stats.toJSON());
+    // }, 1000);
     
     // push the connected sockets into allClients array
     allClients.push(socket);
@@ -166,6 +166,10 @@ io.sockets.on('connection', function (socket){
         rtc[room].initiators.push(socket.id);
         rtc[room].notinitiators.splice(rtc[room].notinitiators.indexOf(socket.id));
         log('Look at my rtc, my rtc is amazing ' + JSON.stringify(rtc));
+    });
+
+    socket.on('bytes_received', function (room, time) {
+        socket.broadcast.emit('update_graph', time)
     });
 
     // when a socket disconnects from the server

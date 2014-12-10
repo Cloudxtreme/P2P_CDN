@@ -87,6 +87,16 @@ socket.on('created', function (room, clientId) {
   loadRes();
 });
 
+socket.on('rendered', function (time) {
+    //update graph
+});
+
+socket.on('update_graph', function (time) {
+    alert("update");
+    connData.push(time);
+    updateGraph(connData);
+});
+
 socket.on('joined', function (room, clientId) {
   console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
   my_id = clientId;
@@ -113,22 +123,22 @@ socket.on('get_peers', function(connectArray, you) {
     console.log("get peers");
     my_id = you;
     connections = connectArray;
-    for (var i = 0; i < connections.length; i++) {
-        connData.push((i+1)*100);
-    }
+    // for (var i = 0; i < connections.length; i++) {
+    //     connData.push((i+1)*100);
+    // }
     createPeerConnections();
     console.log("My connections:", connections, 
                 "peerConnections:", peerConnections, 
                 "dataChannels:", dataChannels);
-    updateGraph(connData);
+    // updateGraph(connData);
 });
 
 socket.on('new_peer', function(socketId) {
     console.log("new peer");
     connections.push(socketId);
-    connData.push((connData.length + 1)*100);
+    // connData.push((connData.length + 1)*100);
     createPeerConnection(isInitiator, configuration, socketId);
-    updateGraph(connData);
+    // updateGraph(connData);
 });
 
 socket.on('close', function() {
@@ -335,11 +345,11 @@ function onDataChannelCreated(channel, id) {
     };
 
     channel.onmessage = (webrtcDetectedBrowser == 'firefox') ? 
-        receiveDataFirefoxFactory() :
-        receiveDataChromeFactory();
+        receiveDataFirefoxFactory(id) :
+        receiveDataChromeFactory(id);
 }
 
-function receiveDataChromeFactory() {
+function receiveDataChromeFactory(id) {
     var buf, count;
 
     return function onmessage(event) {
@@ -361,13 +371,14 @@ function receiveDataChromeFactory() {
             console.log('Done. Rendering photo.');
             photoFinishedRenderingTime = new Date();
             var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+            socket.emit("bytes_received", room, renderingTime);
             $("#time_to_load")[0].innerHTML = renderingTime;
             renderPhoto(buf);
         }
     }
 }
 
-function receiveDataFirefoxFactory() {
+function receiveDataFirefoxFactory(id) {
     var count, total, parts;
 
     return function onmessage(event) {
@@ -394,6 +405,7 @@ function receiveDataFirefoxFactory() {
                         console.log('Done. Rendering photo.');
                         photoFinishedRenderingTime = new Date();
                         var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+                        socket.emit("bytes_received", room, renderingTime);
                         $("#time_to_load")[0].innerHTML = renderingTime;
                         renderPhoto(buf);
                     } else {
