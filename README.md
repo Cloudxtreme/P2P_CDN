@@ -1,6 +1,13 @@
 # A WebRTC-based P2P CDN Implementation
 
-You can view this project live at [p2pcdn.herokuapp.com](p2pcdn.herokuapp.com).
+## To see this project in action:
+* You can view this project live at [p2pcdn.herokuapp.com](p2pcdn.herokuapp.com), or
+* Clone the entire repo, navigate to '/P2P_CDN', and run 'node (or nodejs) server.js' to spin up the server
+	* You can then navigate to 'http://localhost/5000' and view the project there
+
+### Dependencies:
+* Node.js
+
 
 In this readme, we break the code into two sections, one to
 describe the front-end implementation and one to describe
