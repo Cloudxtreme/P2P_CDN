@@ -2,7 +2,7 @@
 
 ## To see this project in action:
 * You can view this project live at [p2pcdn.herokuapp.com](p2pcdn.herokuapp.com), or
-* Clone the entire repo, >cd to '/P2P_CDN', and run 'node (or nodejs) server.js' to spin up the server. You can then navigate to 'http://localhost/5000' and view the project there
+* Clone the entire repo, `cd` to `/P2P_CDN`, and run `node (or nodejs) server.js` to spin up the server. You can then navigate to `http://localhost/5000` and view the project there
 
 ### Dependencies:
 * Node.js
@@ -81,7 +81,7 @@ which to download content. To retrieve assets from
 the server, we can simply write them directly into
 the DOM. For instance, to download an image from
 the server, we programatically inject a src attribute
-into a pre-placed '<img />' tag.
+into a pre-placed `<img />` tag.
 * Additionally, we force users to download from the
 server if their browsers are not WebRTC-compatible.
 Fortunately, Google has written a polyfill called
@@ -105,10 +105,10 @@ sender batches data into 64 Kb chunks (the maximum
 load of a WebRTC data channel) and ports these
 packets through the established data channel.
 * In the case of uploading and downloading an image,
-we write the image data to an invisible '<canvas>'
+we write the image data to an invisible `<canvas>`
 element, convert the canvas element into an array of
 8-bit unsigned integers representing an image, and
 send the array in 64 Kb chunks.
 * Upon receiving the image data, the receiver simply
-stitches the array back into a '<canvas>' element and
+stitches the array back into a `<canvas>` element and
 displays it on the page.
