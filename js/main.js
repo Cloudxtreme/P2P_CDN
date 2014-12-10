@@ -182,7 +182,7 @@ function updateGraph(dataset) {
         .enter()
         .append("div")
         .attr("class", "bar")
-        .style("height", function(d) { return d + "px"; });
+        .style("height", function(d) { return d/10 + "px"; });
 }
 
 // check whether data channel is supported.
