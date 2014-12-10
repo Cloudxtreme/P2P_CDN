@@ -177,12 +177,76 @@ if (!webrtcDetectedBrowser || isOperaBrowser) {
 function updateGraph(dataset) {
     dataset = dataset || [100, 200, 300, 400];
     console.log("updating", dataset);
-    d3.select(".lol").selectAll("div")
-        .data(dataset)
-        .enter()
-        .append("div")
-        .attr("class", "bar")
-        .style("height", function(d) { return d/10 + "px"; });
+
+    //Width and height
+    var w = dataset.length * 25;
+    var h = 150;
+    var padding = 1;
+
+    //Create scale functions
+    var xScale = d3.scale.linear()
+                         .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+                         .range([padding, w - padding * 2]);
+
+    var yScale = d3.scale.linear()
+                         .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+                         .range([h - padding, padding]);
+
+    //Define X axis
+    var xAxis = d3.svg.axis()
+                      .scale(xScale)
+                      .orient("bottom")
+                      .ticks(5);
+
+    //Define Y axis
+    var yAxis = d3.svg.axis()
+                      .scale(yScale)
+                      .orient("left")
+                      .ticks(5);
+
+    //SVG
+    d3.select("svg").remove();
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
+    
+    var rects = svg.selectAll("rect")
+                .data(dataset)
+                .enter()
+                .append("rect")
+                .attr("x", function(d, i) {
+                    return i* (w / dataset.length);
+                })
+                .attr("y", function(d, i) {
+                    return h - (d/20);
+                })
+                .attr("width", w / dataset.length - padding)
+                .attr("height", function(d) {
+                    return d / 20;
+                })
+                .attr("fill", function(d) {
+                    return "rgb(0, " + Math.floor(d/2000 * 255) + ", 0)";
+                });
+
+    //Create X axis
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (h - padding) + ")")
+        .call(xAxis);
+
+    //Create X axis
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(" + padding + ", 0)")
+        .call(yAxis);
+
+    // d3.select("body").selectAll("div")
+    //     .data(dataset)
+    //     .enter()
+    //     .append("div")
+    //     .attr("class", "bar")
+    //     .style("height", function(d) { return d/10 + "px"; });
 }
 
 // check whether data channel is supported.
