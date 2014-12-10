@@ -295,7 +295,7 @@ function checkSupport() {
 function loadRes() {
     if (isInitiator) {
         if (!elementHasBeenDownloaded) {
-            $("#downloaded").attr("src", "/math.jpg");
+            $("#downloaded").attr("src", "/sample.jpg");
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER");
             // if our browser supports data channels, then we
             // allow others to download from us

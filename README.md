@@ -113,3 +113,10 @@ send the array in 64 Kb chunks.
 * Upon receiving the image data, the receiver simply
 stitches the array back into a `<canvas>` element and
 displays it on the page.
+
+### Less important files:
+* `Index.html, main.css`: our standard HTML file and stylesheet
+* `Procfile, app.json, package.json`: config files for Heroku and Node
+* Anything in `node_modules`: Node dependencies
+* `adapter.js`: Google's polyfill for cross-browser compatible code
+* `sample.jpg`: the sample image we're sending between browsers
