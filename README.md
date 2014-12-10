@@ -51,7 +51,7 @@ every occurence of that user’s socket id.
 cleans up data channels, peer connections, and the
 like.
 
-###7.2 main.js
+### Main.js
 
 *Main.js* contains the meat of our CDN functionality;
 within this code, we handle room placement, server offload,
