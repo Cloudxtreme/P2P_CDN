@@ -222,11 +222,16 @@ function updateGraph(dataset) {
                     return h - (d/20);
                 })
                 .attr("width", w / dataset.length - padding)
+                .attr("height", 0)
+                .attr("fill", function(d) {
+                    return "rgb(0, " + Math.floor(d/2000 * 255) + ", 0)";
+                }).transition()
+                .duration(1000)
                 .attr("height", function(d) {
                     return d / 20;
                 })
-                .attr("fill", function(d) {
-                    return "rgb(0, " + Math.floor(d/2000 * 255) + ", 0)";
+                .attr("y", function(d) {
+                    return h - d/20;
                 });
 
     //Create X axis
