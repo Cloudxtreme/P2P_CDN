@@ -92,7 +92,6 @@ socket.on('rendered', function (time) {
 });
 
 socket.on('update_graph', function (time) {
-    alert("update");
     connData.push(time);
     updateGraph(connData);
 });
