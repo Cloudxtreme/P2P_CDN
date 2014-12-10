@@ -24,6 +24,17 @@
 	border: 1px solid #ccc;
 }
 
+.tick {
+    stroke: black;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
+
+.graph {
+    margin: 0 auto;
+    display: block;
+}
+
 .bar {
     display: inline-block;
     width: 20px;

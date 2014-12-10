@@ -185,29 +185,29 @@ function updateGraph(dataset) {
 
     //Create scale functions
     var xScale = d3.scale.linear()
-                         .domain([0, d3.max(dataset, function(d) { return d[0]; })])
+                         .domain([0, dataset.length])
                          .range([padding, w - padding * 2]);
 
     var yScale = d3.scale.linear()
-                         .domain([0, d3.max(dataset, function(d) { return d[1]; })])
+                         .domain([0, d3.max(dataset)/20])
                          .range([h - padding, padding]);
 
     //Define X axis
     var xAxis = d3.svg.axis()
                       .scale(xScale)
                       .orient("bottom")
-                      .ticks(5);
+                      .ticks(dataset.length);
 
     //Define Y axis
     var yAxis = d3.svg.axis()
                       .scale(yScale)
-                      .orient("left")
-                      .ticks(5);
+                      .orient("left");
 
     //SVG
     d3.select("svg").remove();
     var svg = d3.select("body")
         .append("svg")
+        .attr("class", "graph")
         .attr("width", w)
         .attr("height", h);
     
@@ -219,7 +219,7 @@ function updateGraph(dataset) {
                     return i* (w / dataset.length);
                 })
                 .attr("y", function(d, i) {
-                    return h - (d/20);
+                    return h;
                 })
                 .attr("width", w / dataset.length - padding)
                 .attr("height", 0)
@@ -235,23 +235,17 @@ function updateGraph(dataset) {
                 });
 
     //Create X axis
-    svg.append("g")
+    var xAxisLine = svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate(0," + (h - padding) + ")")
+        .attr("stroke", 10)
         .call(xAxis);
 
-    //Create X axis
+    //Create Y axis
     svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate(" + padding + ", 0)")
         .call(yAxis);
-
-    // d3.select("body").selectAll("div")
-    //     .data(dataset)
-    //     .enter()
-    //     .append("div")
-    //     .attr("class", "bar")
-    //     .style("height", function(d) { return d/10 + "px"; });
 }
 
 // check whether data channel is supported.
