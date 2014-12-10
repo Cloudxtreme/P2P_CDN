@@ -206,6 +206,7 @@ io.sockets.on('connection', function (socket){
     });
 
     socket.on('ipaddr', function () {
+        log("WHAT IS THIS WHAT IS THIS");
         var ifaces = os.networkInterfaces();
         for (var dev in ifaces) {
             ifaces[dev].forEach(function (details) {
