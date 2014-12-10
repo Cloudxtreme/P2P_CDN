@@ -7,6 +7,11 @@
 
         <title>CDN Demo</title>
         <link rel="stylesheet" href="css/main.css">
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="js/lib/adapter.js"></script>
+        <script src="http://d3js.org/d3.v3.js"></script>
+        <script src="js/jquery.js"></script>
+        <script src="js/main.js"></script>
     </head>
     <body>
         <div id="canvas_holder" class="center">
@@ -17,11 +22,7 @@
         <button id="send" class="send" style="display:none">send</button>
         <p class="center">This asset took <strong><span id="time_to_load"></span></strong> ms.</p>
         <path d="M0,0L1,6L2,4"></path>
-
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="js/lib/adapter.js"></script>
-        <script src="js/jquery.js"></script>
-        <script src="js/main.js"></script>
+        <div class="lol"></div>
 
     </body>
 </html>

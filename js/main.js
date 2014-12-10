@@ -58,6 +58,8 @@ var photoFinishedRenderingTime;
 
 var isDataChannelLive = false;
 
+var connData = [];
+
 // alert(d3.version);
 
 var rooms = [1,2,3,4,5]
@@ -111,16 +113,22 @@ socket.on('get_peers', function(connectArray, you) {
     console.log("get peers");
     my_id = you;
     connections = connectArray;
+    for (var i = 0; i < connections.length; i++) {
+        connData.push((i+1)*100);
+    }
     createPeerConnections();
     console.log("My connections:", connections, 
                 "peerConnections:", peerConnections, 
                 "dataChannels:", dataChannels);
+    updateGraph(connData);
 });
 
 socket.on('new_peer', function(socketId) {
     console.log("new peer");
     connections.push(socketId);
+    connData.push((connData.length + 1)*100);
     createPeerConnection(isInitiator, configuration, socketId);
+    updateGraph(connData);
 });
 
 socket.on('close', function() {
@@ -128,6 +136,7 @@ socket.on('close', function() {
 });
 
 socket.on('connect', function() {
+
 });
 
 socket.on('remove_peer', function(socketId) {
@@ -154,6 +163,17 @@ isOperaBrowser = (navigator.userAgent.match(/Opera|OPR\//) ? true : false);
 if (!webrtcDetectedBrowser || isOperaBrowser) {
     isInitiator = true;
     loadRes();
+}
+
+function updateGraph(dataset) {
+    dataset = dataset || [100, 200, 300, 400];
+    console.log("updating", dataset);
+    d3.select(".lol").selectAll("div")
+        .data(dataset)
+        .enter()
+        .append("div")
+        .attr("class", "bar")
+        .style("height", function(d) { return d + "px"; });
 }
 
 // check whether data channel is supported.
@@ -480,6 +500,6 @@ function randomToken() {
 }
 
 function logError(err) {
-    alert("error, bitch", err.toString(), err);
+    // alert("error, bitch", err.toString(), err);
     console.log(err.toString(), err);
 }
