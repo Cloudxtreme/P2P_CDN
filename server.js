@@ -204,20 +204,4 @@ io.sockets.on('connection', function (socket){
         console.info("Server side clean!");
 
     });
-
-    socket.on('ipaddr', function () {
-        log("WHAT IS THIS WHAT IS THIS");
-        var ifaces = os.networkInterfaces();
-        for (var dev in ifaces) {
-            ifaces[dev].forEach(function (details) {
-                if (details.family=='IPv4' && details.address != '127.0.0.1') {
-                	log("address", details.address)
-                    socket.emit('ipaddr', details.address);
-                }
-          });
-        }
-    });
-
 });
-
-
