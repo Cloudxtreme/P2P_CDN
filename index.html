@@ -5,26 +5,37 @@
         <meta name="description" content="WebRTC codelab" />
         <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1">
 
-        <title>CDN Demo</title>
+        <title>P2P CDN</title>
         <link rel="stylesheet" href="css/main.css">
     </head>
     <body>
-        <div id="canvas_holder" class="center">
+        <!-- a div to hold the downloaded canvas elt (or img if downloaded from server) -->
+        <div id="img_holder" class="center">
             <p class="center">Below contains assests that may be downloaded from the server or another browser:</p>
-            <img id="ht" />
+            <img id="downloaded" />
         </div>
+
+        <!-- will report that an asset has been downloaded from either the server or from another browser -->
         <p class="center">This element was sent via: <strong><span id="send_medium"></span></strong></p>
-        <button id="send" class="send" style="display:none">send</button>
+
+        <!-- we simulate a click on this button to initiate a download -->
+        <button id="send" class="send nodisplay"></button>
+
+        <!-- reports the asset load time -->
         <p class="center">This asset took <strong><span id="time_to_load"></span></strong> ms.</p>
 
-        <div class="center" id="report" style="float:left">
+        <!-- logs the asset load time for every browser-based connection -->
+        <div class="center left" id="report">
             <div id="latency_values">
-                <h4 class="center" id="avg_report" style="display:none">Average browser-based latency for <span id="num_connections"></span> connection(s): <span id="avg_latency"></span> ms</h4>
+                <!-- holds the average asset load time -->
+                <h4 class="center nodisplay" id="avg_report">Average browser-based latency for <span id="num_connections"></span> connection(s): <span id="avg_latency"></span> ms</h4>
             </div>
         </div>
 
+        <!-- holds the bar graph to visualize asset load time -->
         <path d="M0,0L1,6L2,4"></path>
 
+        <!-- dependencies -->
         <script src="/socket.io/socket.io.js"></script>
         <script src="js/lib/adapter.js"></script>
         <script src="js/jquery.js"></script>

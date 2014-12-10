@@ -295,7 +295,7 @@ function checkSupport() {
 function loadRes() {
     if (isInitiator) {
         if (!elementHasBeenDownloaded) {
-            $("#ht").attr("src", "/math.jpg");
+            $("#downloaded").attr("src", "/math.jpg");
             console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER");
             // if our browser supports data channels, then we
             // allow others to download from us
@@ -304,7 +304,7 @@ function loadRes() {
             }
             elementHasBeenDownloaded = true
             $("#send_medium")[0].innerHTML = "server";
-            $("#ht").load(function() {
+            $("#downloaded").load(function() {
                 photoFinishedRenderingTime = new Date();
                 var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
                 $("#time_to_load")[0].innerHTML = renderingTime;
@@ -531,7 +531,7 @@ function sendPhoto() {
 
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
-    var img = document.getElementById('ht');
+    var img = document.getElementById('downloaded');
     context.drawImage(img, 0, 0);
     var myData = context.getImageData(0, 0, img.width, img.height);
 
@@ -579,7 +579,7 @@ function renderPhoto(data) {
     img = ctx.createImageData(300, 150);
     img.data.set(data);
     ctx.putImageData(img, 0, 0);
-    $("#ht").attr("src", convertCanvasToImage(photoElt).src);
+    $("#downloaded").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
     socket.emit('downloaded', room);
 

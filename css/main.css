@@ -12,7 +12,7 @@
 .bar {
     display: inline-block;
     width: 20px;
-    height: 75px;   /* We'll override this later */
+    height: 75px;
     background-color: teal;
 }
 
@@ -31,4 +31,8 @@
 
 .report {
     width: 700px;
+}
+
+.nodisplay {
+    display: none;
 }
