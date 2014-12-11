@@ -123,4 +123,4 @@ displays it on the page.
 
 Note that some of the nitty-gritty functionality found in main.js, such as the
 Chrome and Firefox factories, actual setting up of data channels and peer connections
-was taken from WebRTC's code tutorial found [here](`https://bitbucket.org/webrtc/codelab`).
+was taken from WebRTC's code tutorial found [here](https://bitbucket.org/webrtc/codelab).
