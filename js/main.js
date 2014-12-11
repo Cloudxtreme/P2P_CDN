@@ -269,6 +269,9 @@ function sendMessage(message){
 
 /**************************************************************************** 
  * WebRTC peer connection and data channel functionality
+ *
+ * NOTE: some of this section was taken from WebRTC's codelab tutorial found here:
+ * https://bitbucket.org/webrtc/codelab
  ****************************************************************************/
 
 // used to establish peer connections

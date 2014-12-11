@@ -120,3 +120,7 @@ displays it on the page.
 * Anything in `node_modules`: Node dependencies
 * `adapter.js`: Google's polyfill for cross-browser compatible code
 * `sample.jpg`: the sample image we're sending between browsers
+
+Note that some of the nitty-gritty functionality found in main.js, such as the
+Chrome and Firefox factories, actual setting up of data channels and peer connections
+was taken from WebRTC's code tutorial found [here](`https://bitbucket.org/webrtc/codelab`).
