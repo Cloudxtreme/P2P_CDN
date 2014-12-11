@@ -1,36 +1,43 @@
-var RTCPeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
-
 // our stun server, used to traverse NAT
 var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
 
-// All the information about this client
-var _me = {};
+// clients socket id, used for creating data channels
 var my_id;
-// Create a random room if not already present in the URL.
-var isInitiator;
-// Reference to the lone PeerConnection instance.
-var peerConnections = {};
-// Array of known peer socket ids
-var connections = [];
-var nonInitiatorConnections = [];
 
-// Reference to the data channels
+// true if user has already downloaded page assets and can 
+// initiate a data channel with newcomers
+var isInitiator;
+
+// reference to the lone PeerConnection instance on which we build a data channel
+var peerConnections = {};
+
+// array of known peer socket ids in a given room
+var connections = [];
+
+// reference to the data channels
 var dataChannels = {};
 var currentDataChannel;
 
+// used to time the asset load time
 var photoBeganRenderingTime = new Date();
 var photoFinishedRenderingTime;
 
-var isDataChannelLive = false;
-
+// array of the asset load times of every connection
 var connData = [];
 
-// alert(d3.version);
-
+// the rooms in which to place clients (can be more to change with #clients)
 var rooms = [1,2,3,4,5]
+
+// check if we're navigating directly to a room
 var room = window.location.hash.substring(1);
-if (!room)
-    room = window.location.hash = rooms[Math.floor(Math.random()*rooms.length)];
+
+// if we navigate to http://localhost/5000, place the user in a room and set in URL
+if (!room) {
+    randomRoom = Math.floor(Math.random()*rooms.length);
+    room = window.location.hash = rooms[randomRoom];
+}
+
+// keeps track of whether or not page assets have been downloaded yet
 var elementHasBeenDownloaded = false; 
 
 /****************************************************************************
@@ -361,7 +368,6 @@ function onDataChannelCreated(channel, id) {
     console.log("My id is", my_id, "I", being, " an initiator, and I CREATED a DataChannel with", id);
 
     channel.onopen = function () {
-        isDataChannelLive = true;
         console.log('CHANNEL opened!');
         if (isInitiator) {
             console.info("about to send...");
