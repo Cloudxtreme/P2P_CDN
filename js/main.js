@@ -1,42 +1,7 @@
 var RTCPeerConnection = (window.PeerConnection || window.webkitPeerConnection00 || window.webkitRTCPeerConnection || window.mozRTCPeerConnection);
 
-// var WebSocket = require('ws');
-function handleImage(e){
-    var reader = new FileReader();
-    reader.onload = function(event){
-        var img = new Image();
-        img.onload = function(){
-            canvas.drawImage(img,0,0);
-        }
-        canvas.width = img.width;
-        canvas.height = img.height;
-        img.src = event.target.result;
-    }
-    reader.readAsDataURL(e.target.files[0]);
-}
-
-function drawCanvasElement(text) {
-    var c = document.getElementById("canvas_test")
-    var ctx = c.getContext("2d");
-    ctx.font = "14px Arial";
-    ctx.beginPath();
-    ctx.arc(95,105,20,0,2*Math.PI);
-    ctx.stroke();
-    $("#send_medium")[0].innerHTML = text;
-}
-
-var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]},
-// {"url":"stun:stun.services.mozilla.com"}
-
-    roomURL = $("#url"),
-    photo = $("#photo"),
-    trail = $("#trail"),
-    canvasHolder = $("#canvasHolder"),
-    sendBtn = $("#send"),
-    canvasWidth, canvasHeight;
-
-// Attach event handlers
-$("#send").click(sendPhoto);
+// our stun server, used to traverse NAT
+var configuration = {'iceServers': [{'url': 'stun:stun.l.google.com:19302'}]};
 
 // All the information about this client
 var _me = {};
@@ -400,7 +365,7 @@ function onDataChannelCreated(channel, id) {
         console.log('CHANNEL opened!');
         if (isInitiator) {
             console.info("about to send...");
-            $("#send").click()
+            sendPhoto();
             console.info("did it send?")
         }
         else {
@@ -588,6 +553,5 @@ function randomToken() {
 }
 
 function logError(err) {
-    // alert("error, bitch", err.toString(), err);
     console.log(err.toString(), err);
 }
