@@ -40,11 +40,7 @@ if (!room) {
 // keeps track of whether or not page assets have been downloaded yet
 var elementHasBeenDownloaded = false; 
 
-/****************************************************************************
- * Signaling server 
- ****************************************************************************/
-
-// Connect to the signaling server
+// stores the socket information of the client
 var socket = io.connect();
 
 socket.on('created', function (room, clientId) {
