@@ -181,18 +181,18 @@ function updateGraph(dataset) {
                          .domain([0, d3.max(dataset)/20])
                          .range([h - padding, padding]);
 
-    //Define X axis
+    // define X axis
     var xAxis = d3.svg.axis()
                       .scale(xScale)
                       .orient("bottom")
                       .ticks(dataset.length);
 
-    //Define Y axis
+    // define Y axis
     var yAxis = d3.svg.axis()
                       .scale(yScale)
                       .orient("left");
 
-    //SVG
+    // create a new svg
     d3.select("svg").remove();
     var svg = d3.select("body")
         .append("svg")
@@ -223,76 +223,47 @@ function updateGraph(dataset) {
                     return h - d/20;
                 });
 
-    //Create X axis
+    // create X axis
     var xAxisLine = svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate(0," + (h - padding) + ")")
         .attr("stroke", 10)
         .call(xAxis);
 
-    //Create Y axis
+    // create Y axis
     svg.append("g")
         .attr("class", "axis")
         .attr("transform", "translate(" + padding + ", 0)")
         .call(yAxis);
-
-    svg.selectAll("text")
-               .data(dataset)
-               .enter()
-               .append("text")
-               .text(function(d) {
-                    return d;
-               })
-               .attr("text-anchor", "middle")
-               .attr("x", function(d, i) {
-                    return i * (w / dataset.length);
-               })
-               .attr("y", function(d) {
-                    return h - (d * 4);
-               })
-               .attr("font-family", "sans-serif")
-               .attr("font-size", "11px")
-               .attr("fill", "black");
 }
 
-// check whether data channel is supported.
-function checkSupport() {
-    try {
-        // raises exception if createDataChannel is not supported
-        var pc = new RTCPeerConnection(config);
-        var channel = pc.createDataChannel('test', {reliable: false});
-        channel.close();
-        return true;
-    } catch (e) {
-        return false;
-    }
-};
+// downloads assets from the server
 function loadFromServer() {
-    if (isInitiator) {
-        if (!elementHasBeenDownloaded) {
-            $("#downloaded").attr("src", "/sample.jpg");
-            console.log("ELEMENT HAS BEEN DOWNLOADED FROM THE SERVER");
-            // if our browser supports data channels, then we
-            // allow others to download from us
-            if (webrtcDetectedBrowser && !isOperaBrowser) {
-                socket.emit('downloaded', room);
-            }
-            elementHasBeenDownloaded = true
-            $("#send_medium")[0].innerHTML = "server";
-            $("#downloaded").load(function() {
-                photoFinishedRenderingTime = new Date();
-                var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
-                $("#time_to_load")[0].innerHTML = renderingTime;
-            });
+    // if we haven't yet downloaded
+    if (isInitiator && !elementHasBeenDownloaded) {
+        // write the image directly to the DOM
+        $("#downloaded").attr("src", "/sample.jpg");
+        // if our browser supports data channels, then we
+        // allow others to download from us
+        if (webrtcDetectedBrowser) {
+            socket.emit('downloaded', room);
         }
+        elementHasBeenDownloaded = true
+
+        // report that we've downloaded from server
+        $("#send_medium")[0].innerHTML = "server";
+
+        // once the asset loads, report the download time
+        $("#downloaded").load(function() {
+            photoFinishedRenderingTime = new Date();
+            var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
+            $("#time_to_load")[0].innerHTML = renderingTime;
+        });
     } 
 }
 
-/**
- * Send message to signaling server
- */
+// sends a message back to the singaling server 
 function sendMessage(message){
-    // console.log('Client sending message: ', message);
     socket.emit('message', message);
 }
 
