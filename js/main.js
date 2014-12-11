@@ -31,7 +31,7 @@ var rooms = [1,2,3,4,5]
 // check if we're navigating directly to a room
 var room = window.location.hash.substring(1);
 
-// if we navigate to http://localhost/5000, place the user in a room and set in URL
+// if we navigate to http://localhost/5000, place the user in random room and set in URL
 if (!room) {
     randomRoom = Math.floor(Math.random()*rooms.length);
     room = window.location.hash = rooms[randomRoom];
@@ -43,18 +43,20 @@ var elementHasBeenDownloaded = false;
 // stores the socket information of the client
 var socket = io.connect();
 
+// if the user is a first to a room...
 socket.on('created', function (room, clientId) {
-  console.log('Created room', room, '- my client ID is', clientId);
-  my_id = clientId;
-  isInitiator = true;
-  loadRes();
+    console.log('Created room', room, '- my client ID is', clientId);
+  
+    // store the socket id into a global
+    my_id = clientId;
+    
+    // the client can now initiate downloads to other browsers
+    isInitiator = true;
+    loadFromServer();
 });
 
-socket.on('rendered', function (time) {
-    //update graph
-});
 
-
+// helper to average an array (used to calculate average asset load time)
 function avg_array(arr) {
     var sum = 0
     for( var i = 0; i < arr.length; i++) {
@@ -63,9 +65,13 @@ function avg_array(arr) {
     return sum / arr.length;
 }
 
+// update the graph with asset load time once all bytes have been sent and received
 socket.on('update_graph', function (time) {
+    // push the time into the load-time array & update visualization
     connData.push(time);
     updateGraph(connData);
+
+    // reports the data within the HTML
     $("#latency_report").css({"display":"block"});
     $("#latency_values").append("<p class='center left'>C" + connData.length + " : " +  time + "ms      |      </p>");
     $("#avg_report").css({"display":"block"});
@@ -73,19 +79,23 @@ socket.on('update_graph', function (time) {
     $("#avg_latency")[0].innerHTML = avg_array(connData);
 });
 
+// when a client joins a room
 socket.on('joined', function (room, clientId) {
-  console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
-  my_id = clientId;
-  isInitiator = false;
-  if (!checkSupport()) {
-      loadRes();
-  }
+    console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
+    
+    // set the id as a global
+    my_id = clientId;
+
+    // initially not an initiator because no content has been downloaded
+    isInitiator = false;
+
+    // if browser not supported, load from server
+    if (!webrtcDetectedBrowser) {
+        loadFromServer();
+    }
 });
 
-socket.on('ready', function () {
-    // createPeerConnection(isInitiator, configuration, socket.id);
-})
-
+// helper to log server messages on the browser console
 socket.on('log', function (array) {
   console.log.apply(console, array);
 });
@@ -148,7 +158,7 @@ isOperaBrowser = (navigator.userAgent.match(/Opera|OPR\//) ? true : false);
 // if browser doesn't support webrtc, just pull from the server
 if (!webrtcDetectedBrowser || isOperaBrowser) {
     isInitiator = true;
-    loadRes();
+    loadFromServer();
 }
 
 function updateGraph(dataset) {
@@ -255,7 +265,7 @@ function checkSupport() {
         return false;
     }
 };
-function loadRes() {
+function loadFromServer() {
     if (isInitiator) {
         if (!elementHasBeenDownloaded) {
             $("#downloaded").attr("src", "/sample.jpg");
@@ -377,7 +387,7 @@ function onDataChannelCreated(channel, id) {
 
     channel.onerror = function (e) {
         console.log('CHANNEL error!', e);
-        loadRes();
+        loadFromServer();
     };
 
     channel.onclose = function() {
