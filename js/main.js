@@ -268,45 +268,50 @@ function sendMessage(message){
 }
 
 /**************************************************************************** 
- * WebRTC peer connection and data channel
+ * WebRTC peer connection and data channel functionality
  ****************************************************************************/
 
+// used to establish peer connections
 var peerConn;
 
+// callback on receiving messages from other clients
 function signalingMessageCallback(message) {
     if (message.type === 'offer') {
         console.log('Got offer. Sending answer to peer.');
+        // answer the pc offer
         peerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
         peerConn.createAnswer(onLocalSessionCreated, logError);
-
     } else if (message.type === 'answer') {
         console.log('Got answer.');
+        // set the remote description
         peerConn.setRemoteDescription(new RTCSessionDescription(message), function(){}, logError);
-
     } else if (message.type === 'candidate') {
+        // add an ICE candidate
         peerConn.addIceCandidate(new RTCIceCandidate({candidate: message.candidate}));
-
     } else if (message === 'bye') {
-        // TODO: cleanup RTC connection?
-        // console.log("MESSSAGE", message)
+        // no need to do anything here, we clean up sockets elsewhere
+        console.log(message);
     }
 }
 
+// creates pc's with other clients in our room
 createPeerConnections = function() {
     for (var i = 0; i < connections.length; i++) {
         createPeerConnection(false, configuration, connections[i]);
     }
 };
 
+// creates a pc
 function createPeerConnection(isInitiator, config, peer_id) {
     isInitiator = isInitiator || false;
     var being = isInitiator ? "am" : "am not"
     console.log("My id is", my_id, "I", being, " an initiator, and I am creating a PC with", peer_id);
+    
+    // create a new pc using Google's stun server
     peerConn = peerConnections[peer_id] = new RTCPeerConnection(config);
 
     // send any ice candidates to the other peer
     peerConn.onicecandidate = function (event) {
-        // console.log('onIceCandidate event:', event);
         if (event.candidate) {
             sendMessage({
                 type: 'candidate',
@@ -319,21 +324,24 @@ function createPeerConnection(isInitiator, config, peer_id) {
         }
     };
 
+    // initiators create the data channels
     if (isInitiator) {
         console.log("My id is", my_id, "and I am creating a DataChannel with", peer_id);
+        // creates a data channel on top of the necessary peer connection
         dataChannels[peer_id] = peerConn.createDataChannel("photos " + my_id, {reliable: false});
         onDataChannelCreated(dataChannels[peer_id], peer_id);
         console.log('Creating an offer');
         peerConn.createOffer(onLocalSessionCreated, logError);
     } else {
         peerConn.ondatachannel = function (event) {
-            // console.log('ondatachannel:', event.channel);
+            // else, a data channel is being set up with us
             dataChannels[peer_id] = event.channel;
             onDataChannelCreated(dataChannels[peer_id], peer_id);
         };
     }
 }
 
+// set the local description of the pc
 function onLocalSessionCreated(desc) {
     console.log('local session created:', desc);
     peerConn.setLocalDescription(desc, function () {
@@ -342,17 +350,18 @@ function onLocalSessionCreated(desc) {
     }, logError);
 }
 
+// once a data channel has been created, we can send bits between 2 browsers
 function onDataChannelCreated(channel, id) {
     var being = isInitiator ? "am" : "am not"
     console.log("My id is", my_id, "I", being, " an initiator, and I CREATED a DataChannel with", id);
 
     channel.onopen = function () {
-        console.log('CHANNEL opened!');
+        console.log('Channel opened!');
+        // send the photo if we initiated the data channel
         if (isInitiator) {
-            console.info("about to send...");
             sendPhoto();
-            console.info("did it send?")
         }
+        // otherwise, just receive the bits and report the load medium
         else {
             $("#send_medium")[0].innerHTML = "browser";
         }
@@ -363,6 +372,7 @@ function onDataChannelCreated(channel, id) {
         loadFromServer();
     };
 
+    // when a channel closes, clean up the data channel from our globals
     channel.onclose = function() {
         delete dataChannels[id];
         delete peerConnections[id];
@@ -375,6 +385,8 @@ function onDataChannelCreated(channel, id) {
         receiveDataChromeFactory(id);
 }
 
+
+// for receiving data on Chrome (or Opera, for that matter)
 function receiveDataChromeFactory(id) {
     var buf, count;
 
@@ -386,24 +398,33 @@ function receiveDataChromeFactory(id) {
             return;
         }
 
+        // parse data from canvas element into Uint8ClampedArray
         var data = new Uint8ClampedArray(event.data);
         buf.set(data, count);
 
         count += data.byteLength;
         console.log('count: ' + count);
 
+        // we've received all the data we can
         if (count == buf.byteLength) {
             // we're done: all data chunks have been received
             console.log('Done. Rendering photo.');
+
+            // set the asset load time
             photoFinishedRenderingTime = new Date();
             var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
-            socket.emit("bytes_received", room, renderingTime);
             $("#time_to_load")[0].innerHTML = renderingTime;
+
+            // let the server know about the successful transfer
+            socket.emit("bytes_received", room, renderingTime);
+
+            // render the photo on screen
             renderPhoto(buf);
         }
     }
 }
 
+// for receiving data on Firefox
 function receiveDataFirefoxFactory(id) {
     var count, total, parts;
 
@@ -422,6 +443,8 @@ function receiveDataFirefoxFactory(id) {
 
         if (count == total) {
             console.log('Assembling payload')
+
+            // parse the data into Uint8ClampedArray
             var buf = new Uint8ClampedArray(total);
             var compose = function(i, pos) {
                 var reader = new FileReader();
@@ -429,10 +452,16 @@ function receiveDataFirefoxFactory(id) {
                     buf.set(new Uint8ClampedArray(this.result), pos);
                     if (i + 1 == parts.length) {
                         console.log('Done. Rendering photo.');
+
+                        // set the asset load time
                         photoFinishedRenderingTime = new Date();
                         var renderingTime = photoFinishedRenderingTime - photoBeganRenderingTime;
-                        socket.emit("bytes_received", room, renderingTime);
                         $("#time_to_load")[0].innerHTML = renderingTime;
+                        
+                        // let the server know about the successful transfer
+                        socket.emit("bytes_received", room, renderingTime);
+                        
+                        // actually render the photo on screen
                         renderPhoto(buf);
                     } else {
                         compose(i + 1, pos + this.result.byteLength);
@@ -445,11 +474,7 @@ function receiveDataFirefoxFactory(id) {
     }
 }
 
-
-/**************************************************************************** 
- * Aux functions, mostly UI-related
- ****************************************************************************/
-
+// sends a photo over a browser-based data channel
 function sendPhoto() {
     var dcid = connections[Math.floor(Math.random()*connections.length)];
     var dataChannel = dataChannels[Object.keys(dataChannels)[0]];
@@ -496,47 +521,43 @@ function sendPhoto() {
     console.error(dataChannels, dataChannel);
 }
 
+
+// converts a canvas element to an image
 function convertCanvasToImage(canvas) {
     var image = new Image();
     image.src = canvas.toDataURL();
     return image;
 }
 
+// renders a photo on screen by writing the data to
+// a canvas element and turning it into an img
 function renderPhoto(data) {
+    // create the canvas elt
     var photoElt = document.createElement('canvas');
     photoElt.classList.add('photo');
     var ctx = photoElt.getContext('2d');
     ctx.canvas.width  = 300;
     ctx.canvas.height = 150;
     img = ctx.createImageData(300, 150);
+
+    // set the image data
     img.data.set(data);
     ctx.putImageData(img, 0, 0);
+
+    // write the new src into the DOM
     $("#downloaded").attr("src", convertCanvasToImage(photoElt).src);
     isInitiator = true;
+
+    // let the server know about the successfull transfer
     socket.emit('downloaded', room);
 
-    // console.error(dataChannels, currentDataChannel);
+    // close the data channel and pc
     dataChannels[Object.keys(dataChannels)[0]].close();
     delete dataChannels[Object.keys(dataChannels)[0]];
     peerConn.close();
 }
 
-function show() {
-    Array.prototype.forEach.call(arguments, function(elem){
-        elem.style.display = null;
-    });
-}
-
-function hide() {
-    Array.prototype.forEach.call(arguments, function(elem){
-        elem.style.display = 'none';
-    });
-}
-
-function randomToken() {
-    return Math.floor((1 + Math.random()) * 1e16).toString(16).substring(1);
-}
-
+// for error callbacks when creating RTC objects
 function logError(err) {
     console.log(err.toString(), err);
 }
