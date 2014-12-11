@@ -79,6 +79,9 @@ socket.on('update_graph', function (time) {
     $("#avg_latency")[0].innerHTML = avg_array(connData);
 });
 
+// we've either created or joined a room
+socket.emit('create or join', room);
+
 // when a client joins a room
 socket.on('joined', function (room, clientId) {
     console.log('This peer has joined room', room, 'with client ID', clientId, "socket", socket);
@@ -100,77 +103,76 @@ socket.on('log', function (array) {
   console.log.apply(console, array);
 });
 
+// used to communicate metadata between browsers
 socket.on('message', function (message){
     console.log('Client received message:', message);
+
+    // fire a callback based on the message (could be an offer, answer, etc.)
     signalingMessageCallback(message);
 });
 
+// on "get_peers", we create peer connections between nodes in a room
 socket.on('get_peers', function(connectArray, you) {
-    console.log("get peers");
     my_id = you;
+
+    // update the connections array
     connections = connectArray;
-    // for (var i = 0; i < connections.length; i++) {
-    //     connData.push((i+1)*100);
-    // }
+
+    // create pc's between clients
     createPeerConnections();
     console.log("My connections:", connections, 
                 "peerConnections:", peerConnections, 
                 "dataChannels:", dataChannels);
-    // updateGraph(connData);
 });
 
+
+// on "new_peer", log the socket id into the connections array and create a new pc
 socket.on('new_peer', function(socketId) {
     console.log("new peer");
+
+    // ad the id to the connections list
     connections.push(socketId);
-    // connData.push((connData.length + 1)*100);
+
+    // create a pc
     createPeerConnection(isInitiator, configuration, socketId);
-    // updateGraph(connData);
 });
 
-socket.on('close', function() {
-    // clean up connects 
-});
-
-socket.on('connect', function() {
-
-});
-
+// when a client leaves the website...
 socket.on('remove_peer', function(socketId) {
-    if (typeof(peerConnections[socketId]) !== 'undefined')
+    // remove the pc
+    if (typeof(peerConnections[socketId]) !== 'undefined') {
         peerConnections[socketId].close();
+    }
+
+    // delete from global arrays if
     delete peerConnections[socketId];
     delete dataChannels[socketId];
     delete connections[socketId];
-    console.info("Client side Clean!!");
+    console.info("Client side clean!");
 });
-
-// Join a room
-socket.emit('create or join', room);
 
 if (location.hostname.match(/localhost|127\.0\.0/)) {
     socket.emit('ipaddr');
 }
 
-// opera uses the chrome rendering engine, so we need to
-// determine this manually
-isOperaBrowser = (navigator.userAgent.match(/Opera|OPR\//) ? true : false);
-
-// if browser doesn't support webrtc, just pull from the server
-if (!webrtcDetectedBrowser || isOperaBrowser) {
+// if browser doesn't support webrtc, just pull from the server immediately
+if (!webrtcDetectedBrowser) {
     isInitiator = true;
     loadFromServer();
 }
 
+// update the graph, which keeps track of the asset load time for 
+// every browser-based connection
 function updateGraph(dataset) {
     dataset = dataset || [100, 200, 300, 400];
     console.log("updating", dataset);
 
-    //Width and height
+    // width and height
     var w = dataset.length * 25;
     var h = 150;
     var padding = 1;
 
-    //Create scale functions
+    // create scale functions
     var xScale = d3.scale.linear()
                          .domain([0, dataset.length])
                          .range([padding, w - padding * 2]);
